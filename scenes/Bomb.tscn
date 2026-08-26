@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://c2f14qr5xdmwd"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_bomb"]
+radius = 15.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_explosion"]
+radius = 15.0
+
+[node name="Bomb" type="Area2D" unique_id=577689259]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=104526414]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1963955933]
+shape = SubResource("CircleShape2D_bomb")
+
+[node name="ExplosionArea" type="Area2D" parent="." unique_id=483324582]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ExplosionArea" unique_id=1404043141]
+shape = SubResource("CircleShape2D_explosion")
+
+[node name="Timer" type="Timer" parent="." unique_id=1802164897]

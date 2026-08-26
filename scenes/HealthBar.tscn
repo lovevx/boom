@@ -1,0 +1,21 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/HealthBar.gd" id="1_hb"]
+
+[node name="HealthBar" type="Node2D"]
+script = ExtResource("1_hb")
+
+[node name="Background" type="ColorRect" parent="."]
+offset_right = 32.0
+offset_bottom = 5.0
+color = Color(0, 0, 0, 0.5)
+
+[node name="DelayBar" type="ColorRect" parent="."]
+offset_right = 32.0
+offset_bottom = 5.0
+color = Color(1, 0.9, 0.4, 0.7)
+
+[node name="CurrentBar" type="ColorRect" parent="."]
+offset_right = 32.0
+offset_bottom = 5.0
+color = Color(0.3, 0.9, 0.3, 1)

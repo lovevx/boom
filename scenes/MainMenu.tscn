@@ -1,0 +1,316 @@
+[gd_scene format=3 uid="uid://c7nlggu1r0tjh"]
+
+[ext_resource type="Script" uid="uid://bj621m1a1iptx" path="res://scripts/MainMenu.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/SettingsPanel.gd" id="5_settings"]
+[ext_resource type="Texture2D" uid="uid://dmlcss25q66xu" path="res://assets/ui/主菜单背景.png" id="2_bg_bg"]
+[ext_resource type="Texture2D" uid="uid://bfukhjfeuwgt1" path="res://assets/ui/游戏菜单图.png" id="3_menu_art"]
+[ext_resource type="Texture2D" uid="uid://bfna4bdeu1jqh" path="res://assets/ui/开始按钮.png" id="4_start_btn"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBox_start"]
+texture = ExtResource("4_start_btn")
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_howto_panel"]
+content_margin_left = 40.0
+content_margin_top = 30.0
+content_margin_right = 40.0
+content_margin_bottom = 30.0
+bg_color = Color(0.13, 0.15, 0.21, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.62, 0.35, 0.85)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_close"]
+content_margin_left = 20.0
+content_margin_top = 10.0
+content_margin_right = 20.0
+content_margin_bottom = 10.0
+bg_color = Color(0.75, 0.45, 0.15, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_close_hover"]
+content_margin_left = 20.0
+content_margin_top = 10.0
+content_margin_right = 20.0
+content_margin_bottom = 10.0
+bg_color = Color(0.85, 0.52, 0.18, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[node name="MainMenu" type="CanvasLayer" unique_id=331202290]
+layer = 10
+script = ExtResource("1_script")
+
+[node name="Bg" type="TextureRect" parent="." unique_id=86233611]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_bg_bg")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="MenuArt" type="TextureRect" parent="." unique_id=596088201]
+offset_left = 459.0
+offset_top = 74.0
+offset_right = 1461.0
+offset_bottom = 1006.0
+mouse_filter = 2
+texture = ExtResource("3_menu_art")
+
+[node name="StartButton" type="Button" parent="." unique_id=556677889]
+offset_left = 857.0
+offset_top = 560.0
+offset_right = 1057.0
+offset_bottom = 648.0
+theme_override_colors/font_color = Color(1, 0.96, 0.88, 1)
+theme_override_colors/font_focus_color = Color(1, 0.82, 0.28, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.68, 0.15, 1)
+theme_override_colors/font_hover_color = Color(1, 0.82, 0.28, 1)
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBox_start")
+theme_override_styles/pressed = SubResource("StyleBox_start")
+theme_override_styles/hover = SubResource("StyleBox_start")
+theme_override_styles/focus = SubResource("StyleBox_start")
+text = "开始游戏"
+
+[node name="HowButton" type="Button" parent="." unique_id=1138144394]
+offset_left = 857.0
+offset_top = 690.0
+offset_right = 1057.0
+offset_bottom = 746.0
+theme_override_colors/font_color = Color(1, 0.96, 0.88, 1)
+theme_override_colors/font_focus_color = Color(1, 0.82, 0.28, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.68, 0.15, 1)
+theme_override_colors/font_hover_color = Color(1, 0.82, 0.28, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBox_start")
+theme_override_styles/pressed = SubResource("StyleBox_start")
+theme_override_styles/hover = SubResource("StyleBox_start")
+theme_override_styles/focus = SubResource("StyleBox_start")
+text = "玩法说明"
+
+[node name="SettingsButton" type="Button" parent="." unique_id=2179440312]
+offset_left = 857.0
+offset_top = 762.0
+offset_right = 1057.0
+offset_bottom = 818.0
+theme_override_colors/font_color = Color(1, 0.96, 0.88, 1)
+theme_override_colors/font_focus_color = Color(1, 0.82, 0.28, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.68, 0.15, 1)
+theme_override_colors/font_hover_color = Color(1, 0.82, 0.28, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBox_start")
+theme_override_styles/pressed = SubResource("StyleBox_start")
+theme_override_styles/hover = SubResource("StyleBox_start")
+theme_override_styles/focus = SubResource("StyleBox_start")
+text = "设置"
+
+[node name="QuitButton" type="Button" parent="." unique_id=387984972]
+offset_left = 857.0
+offset_top = 834.0
+offset_right = 1057.0
+offset_bottom = 890.0
+theme_override_colors/font_color = Color(1, 0.96, 0.88, 1)
+theme_override_colors/font_focus_color = Color(1, 0.82, 0.28, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.68, 0.15, 1)
+theme_override_colors/font_hover_color = Color(1, 0.82, 0.28, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBox_start")
+theme_override_styles/pressed = SubResource("StyleBox_start")
+theme_override_styles/hover = SubResource("StyleBox_start")
+theme_override_styles/focus = SubResource("StyleBox_start")
+text = "退出游戏"
+
+[node name="HowTo" type="Control" parent="." unique_id=346061732]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dim" type="ColorRect" parent="HowTo" unique_id=1784363207]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="Center" type="CenterContainer" parent="HowTo" unique_id=471750023]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Panel" type="PanelContainer" parent="HowTo/Center" unique_id=2037370293]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBox_howto_panel")
+
+[node name="VBox" type="VBoxContainer" parent="HowTo/Center/Panel" unique_id=702469563]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="Title" type="Label" parent="HowTo/Center/Panel/VBox" unique_id=1664452432]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_font_sizes/font_size = 36
+text = "玩法说明"
+horizontal_alignment = 1
+
+[node name="StepsHBox" type="HBoxContainer" parent="HowTo/Center/Panel/VBox" unique_id=1775164747]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Cell1" type="VBoxContainer" parent="HowTo/Center/Panel/VBox/StepsHBox" unique_id=1156179300]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="Icon" type="Label" parent="HowTo/Center/Panel/VBox/StepsHBox/Cell1" unique_id=641668906]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_font_sizes/font_size = 48
+text = "◆"
+horizontal_alignment = 1
+
+[node name="T" type="Label" parent="HowTo/Center/Panel/VBox/StepsHBox/Cell1" unique_id=1276944771]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_font_sizes/font_size = 26
+text = "砸 / 炸"
+horizontal_alignment = 1
+
+[node name="D" type="Label" parent="HowTo/Center/Panel/VBox/StepsHBox/Cell1" unique_id=738718785]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.76, 0.82, 1)
+theme_override_font_sizes/font_size = 16
+text = "锤子点击砸楼；解锁炮台后自动轰炸"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Cell2" type="VBoxContainer" parent="HowTo/Center/Panel/VBox/StepsHBox" unique_id=1403700438]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="Icon" type="Label" parent="HowTo/Center/Panel/VBox/StepsHBox/Cell2" unique_id=127566182]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_font_sizes/font_size = 48
+text = "●"
+horizontal_alignment = 1
+
+[node name="T" type="Label" parent="HowTo/Center/Panel/VBox/StepsHBox/Cell2" unique_id=1374226709]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_font_sizes/font_size = 26
+text = "赚金币"
+horizontal_alignment = 1
+
+[node name="D" type="Label" parent="HowTo/Center/Panel/VBox/StepsHBox/Cell2" unique_id=338218146]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.76, 0.82, 1)
+theme_override_font_sizes/font_size = 16
+text = "破坏方块产出金币，楼层越靠上越耐打"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Cell3" type="VBoxContainer" parent="HowTo/Center/Panel/VBox/StepsHBox" unique_id=883163551]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="Icon" type="Label" parent="HowTo/Center/Panel/VBox/StepsHBox/Cell3" unique_id=786479933]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_font_sizes/font_size = 48
+text = "▲"
+horizontal_alignment = 1
+
+[node name="T" type="Label" parent="HowTo/Center/Panel/VBox/StepsHBox/Cell3" unique_id=454178211]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_font_sizes/font_size = 26
+text = "升级"
+horizontal_alignment = 1
+
+[node name="D" type="Label" parent="HowTo/Center/Panel/VBox/StepsHBox/Cell3" unique_id=874963129]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.76, 0.82, 1)
+theme_override_font_sizes/font_size = 16
+text = "技能树强化锤子、经济与炸弹威力"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Cell4" type="VBoxContainer" parent="HowTo/Center/Panel/VBox/StepsHBox" unique_id=515540421]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="Icon" type="Label" parent="HowTo/Center/Panel/VBox/StepsHBox/Cell4" unique_id=992542491]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_font_sizes/font_size = 48
+text = "★"
+horizontal_alignment = 1
+
+[node name="T" type="Label" parent="HowTo/Center/Panel/VBox/StepsHBox/Cell4" unique_id=805081633]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_font_sizes/font_size = 26
+text = "自动炸"
+horizontal_alignment = 1
+
+[node name="D" type="Label" parent="HowTo/Center/Panel/VBox/StepsHBox/Cell4" unique_id=1415282269]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.76, 0.82, 1)
+theme_override_font_sizes/font_size = 16
+text = "炮台越多越快越强，越玩越省力"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="CloseCenter" type="CenterContainer" parent="HowTo/Center/Panel/VBox" unique_id=147721656]
+layout_mode = 2
+
+[node name="CloseButton" type="Button" parent="HowTo/Center/Panel/VBox/CloseCenter" unique_id=1641501232]
+custom_minimum_size = Vector2(220, 52)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.88, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBox_close")
+theme_override_styles/pressed = SubResource("StyleBox_close")
+theme_override_styles/hover = SubResource("StyleBox_close_hover")
+theme_override_styles/focus = SubResource("StyleBox_close")
+text = "知道了"
+
+[node name="SettingsPanel" type="Control" parent="." unique_id=2179440313]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("5_settings")
+

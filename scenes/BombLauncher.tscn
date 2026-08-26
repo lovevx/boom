@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/BombLauncher.gd" id="1_script"]
+
+[sub_resource type="RectangleShape2D" id="Rect_base"]
+size = Vector2(60, 18)
+
+[node name="BombLauncher" type="StaticBody2D"]
+script = ExtResource("1_script")
+
+[node name="TurretSprite" type="AnimatedSprite2D" parent="."]
+
+[node name="MuzzlePosition" type="Marker2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 44)
+shape = SubResource("Rect_base")
+
+[node name="CooldownTimer" type="Timer" parent="."]

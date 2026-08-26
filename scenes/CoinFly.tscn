@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://b8x0coin0fly"]
+
+[ext_resource type="Script" path="res://scripts/CoinFly.gd" id="1_script"]
+
+[node name="CoinFly" type="Node2D"]
+script = ExtResource("1_script")

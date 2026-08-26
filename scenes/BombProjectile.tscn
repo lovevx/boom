@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/BombProjectile.gd" id="1_script"]
+
+[sub_resource type="CircleShape2D" id="Circle_hit"]
+radius = 8.0
+
+[node name="BombProjectile" type="Area2D"]
+script = ExtResource("1_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+
+[node name="Shadow" type="Sprite2D" parent="."]
+position = Vector2(0, 30)
+z_index = -1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("Circle_hit")

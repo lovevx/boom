@@ -1,0 +1,235 @@
+[gd_scene format=3 uid="uid://cahgj2cb46586"]
+
+[ext_resource type="Script" uid="uid://d107woryw7yik" path="res://scripts/GoldHUD.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/金币UIpng.png" id="2_coin"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_skill"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(0.2, 0.25, 0.35, 0.92)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_confirm_panel"]
+content_margin_left = 28.0
+content_margin_top = 22.0
+content_margin_right = 28.0
+content_margin_bottom = 22.0
+bg_color = Color(0.16, 0.18, 0.24, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.62, 0.35, 0.85)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_btn_cancel"]
+bg_color = Color(0.3, 0.32, 0.38, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_btn_ok"]
+bg_color = Color(0.75, 0.28, 0.25, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="GoldHUD" type="CanvasLayer" unique_id=1403209512]
+layer = 10
+script = ExtResource("1_script")
+
+[node name="GoldBar" type="Control" parent="." unique_id=378715331]
+layout_mode = 3
+anchors_preset = 10
+anchor_right = 1.0
+offset_right = 3.0
+offset_bottom = 139.0
+grow_horizontal = 2
+
+[node name="CoinHBox" type="Control" parent="GoldBar" unique_id=191496693]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 64.0
+offset_right = 325.0
+offset_bottom = 128.0
+
+[node name="CoinIcon" type="TextureRect" parent="GoldBar/CoinHBox" unique_id=1816361188]
+layout_mode = 1
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CoinLabel" type="Label" parent="GoldBar/CoinHBox" unique_id=482120947]
+layout_mode = 1
+anchor_left = 0.35
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -18.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 30
+text = "0"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="ReincarnationButton" type="Button" parent="GoldBar" unique_id=777000001]
+layout_mode = 0
+offset_left = 350.0
+offset_top = 25.0
+offset_right = 470.0
+offset_bottom = 73.0
+theme_override_colors/font_color = Color(0.6, 0.8, 1, 1)
+theme_override_colors/font_hover_color = Color(0.85, 0.92, 1, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBox_skill")
+theme_override_styles/pressed = SubResource("StyleBox_skill")
+theme_override_styles/hover = SubResource("StyleBox_skill")
+theme_override_styles/focus = SubResource("StyleBox_skill")
+text = "转生"
+
+[node name="SkillTreeButton" type="Button" parent="GoldBar" unique_id=283157859]
+layout_mode = 0
+offset_left = 1717.0
+offset_top = 25.0
+offset_right = 1897.0
+offset_bottom = 73.0
+theme_override_colors/font_color = Color(1, 0.9, 0.55, 1)
+theme_override_colors/font_hover_color = Color(1, 0.96, 0.75, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBox_skill")
+theme_override_styles/pressed = SubResource("StyleBox_skill")
+theme_override_styles/hover = SubResource("StyleBox_skill")
+theme_override_styles/focus = SubResource("StyleBox_skill")
+text = "技能树 ★"
+
+[node name="SettingsButton" type="Button" parent="GoldBar" unique_id=398132899]
+layout_mode = 0
+offset_left = 1275.0
+offset_top = 25.0
+offset_right = 1405.0
+offset_bottom = 73.0
+theme_override_colors/font_color = Color(1, 0.9, 0.6, 1)
+theme_override_colors/font_hover_color = Color(1, 0.96, 0.78, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBox_skill")
+theme_override_styles/pressed = SubResource("StyleBox_skill")
+theme_override_styles/hover = SubResource("StyleBox_skill")
+theme_override_styles/focus = SubResource("StyleBox_skill")
+text = "设置"
+
+[node name="MenuButton" type="Button" parent="GoldBar" unique_id=398132898]
+layout_mode = 0
+offset_left = 1417.0
+offset_top = 25.0
+offset_right = 1556.0
+offset_bottom = 73.0
+theme_override_colors/font_color = Color(0.65, 0.8, 1, 1)
+theme_override_colors/font_hover_color = Color(0.85, 0.92, 1, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBox_skill")
+theme_override_styles/pressed = SubResource("StyleBox_skill")
+theme_override_styles/hover = SubResource("StyleBox_skill")
+theme_override_styles/focus = SubResource("StyleBox_skill")
+text = "返回主菜单"
+
+[node name="RestartButton" type="Button" parent="GoldBar" unique_id=774530685]
+layout_mode = 0
+offset_left = 1567.0
+offset_top = 25.0
+offset_right = 1705.0
+offset_bottom = 73.0
+theme_override_colors/font_color = Color(1, 0.68, 0.5, 1)
+theme_override_colors/font_hover_color = Color(1, 0.8, 0.7, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBox_skill")
+theme_override_styles/pressed = SubResource("StyleBox_skill")
+theme_override_styles/hover = SubResource("StyleBox_skill")
+theme_override_styles/focus = SubResource("StyleBox_skill")
+text = "重新开始"
+
+[node name="RestartConfirm" type="Control" parent="." unique_id=759509196]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dim" type="ColorRect" parent="RestartConfirm" unique_id=87641963]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.55)
+
+[node name="Center" type="CenterContainer" parent="RestartConfirm" unique_id=113350017]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Panel" type="PanelContainer" parent="RestartConfirm/Center" unique_id=1460051023]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBox_confirm_panel")
+
+[node name="VBox" type="VBoxContainer" parent="RestartConfirm/Center/Panel" unique_id=1545290701]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Title" type="Label" parent="RestartConfirm/Center/Panel/VBox" unique_id=2132671370]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_font_sizes/font_size = 30
+text = "重新开始"
+horizontal_alignment = 1
+
+[node name="Warn" type="Label" parent="RestartConfirm/Center/Panel/VBox" unique_id=589632156]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.85, 1)
+theme_override_font_sizes/font_size = 17
+text = "所有金币与升级将被清零，且不可撤销。
+确定要重新开始吗？"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Buttons" type="HBoxContainer" parent="RestartConfirm/Center/Panel/VBox" unique_id=1053339462]
+layout_mode = 2
+theme_override_constants/separation = 18
+alignment = 1
+
+[node name="CancelButton" type="Button" parent="RestartConfirm/Center/Panel/VBox/Buttons" unique_id=815099380]
+custom_minimum_size = Vector2(150, 46)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBox_btn_cancel")
+theme_override_styles/pressed = SubResource("StyleBox_btn_cancel")
+theme_override_styles/hover = SubResource("StyleBox_btn_cancel")
+theme_override_styles/focus = SubResource("StyleBox_btn_cancel")
+text = "取消"
+
+[node name="OKButton" type="Button" parent="RestartConfirm/Center/Panel/VBox/Buttons" unique_id=1509070529]
+custom_minimum_size = Vector2(200, 46)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBox_btn_ok")
+theme_override_styles/pressed = SubResource("StyleBox_btn_ok")
+theme_override_styles/hover = SubResource("StyleBox_btn_ok")
+theme_override_styles/focus = SubResource("StyleBox_btn_ok")
+text = "确定重新开始"

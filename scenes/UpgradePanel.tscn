@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://byl2dxage4c1c"]
+
+[ext_resource type="Script" uid="uid://b1fapomdt0diy" path="res://scripts/UpgradePanel.gd" id="1_script"]
+
+[node name="UpgradePanel" type="Control" unique_id=595801347]
+process_mode = 3
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")

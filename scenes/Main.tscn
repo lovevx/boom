@@ -1,0 +1,134 @@
+[gd_scene format=3 uid="uid://be83glv5681pj"]
+
+[ext_resource type="Script" uid="uid://cdsycmljqkg5f" path="res://scripts/BuildingSetup.gd" id="1_setup"]
+[ext_resource type="Script" uid="uid://c3pe7fmohp6r4" path="res://scripts/Hammer.gd" id="2_hammer"]
+[ext_resource type="Script" uid="uid://c2m5tfn4n35jv" path="res://scripts/CameraShake.gd" id="4_shake"]
+[ext_resource type="PackedScene" uid="uid://cahgj2cb46586" path="res://scenes/GoldHUD.tscn" id="5_hud"]
+[ext_resource type="Script" uid="uid://ci6yhb6nemody" path="res://scripts/TestPanel.gd" id="7_test"]
+[ext_resource type="PackedScene" path="res://scenes/UpgradePanel.tscn" id="8_ui"]
+[ext_resource type="Script" path="res://scripts/ReincarnationPanel.gd" id="13_reinc"]
+[ext_resource type="Script" path="res://scripts/SettingsPanel.gd" id="14_settings"]
+[ext_resource type="Script" uid="uid://ctuukj31hm86f" path="res://scripts/LauncherManager.gd" id="9_launcher_mgr"]
+[ext_resource type="Script" uid="uid://bi5w2lgugejld" path="res://scripts/Onboarding.gd" id="10_onboarding"]
+[ext_resource type="Texture2D" uid="uid://pqq6ygtaevi4" path="res://assets/ui/游戏界面背景.png" id="11_bg"]
+[ext_resource type="Script" path="res://scripts/Background.gd" id="12_bg3"]
+
+[sub_resource type="RectangleShape2D" id="Rect_wall_l"]
+size = Vector2(20, 1080)
+
+[sub_resource type="RectangleShape2D" id="Rect_top"]
+size = Vector2(1920, 20)
+
+[sub_resource type="RectangleShape2D" id="Rect_ground"]
+size = Vector2(1920, 80)
+
+[node name="Main" type="Node2D" unique_id=307318623]
+
+[node name="LeftWall" type="StaticBody2D" parent="." unique_id=1887351886]
+position = Vector2(10, 540)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="LeftWall" unique_id=312813399]
+shape = SubResource("Rect_wall_l")
+
+[node name="RightWall" type="StaticBody2D" parent="." unique_id=1277204453]
+position = Vector2(1910, 540)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RightWall" unique_id=1979429416]
+shape = SubResource("Rect_wall_l")
+
+[node name="TopWall" type="StaticBody2D" parent="." unique_id=769654969]
+position = Vector2(960, 10)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TopWall" unique_id=1156793723]
+shape = SubResource("Rect_top")
+
+[node name="Background" type="ParallaxBackground" parent="." unique_id=1555129981]
+script = ExtResource("12_bg3")
+
+[node name="Building" type="Node2D" parent="." unique_id=1248501446]
+script = ExtResource("1_setup")
+
+[node name="Ground" type="StaticBody2D" parent="." unique_id=1129229324]
+position = Vector2(960, 1040)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground" unique_id=1295147593]
+shape = SubResource("Rect_ground")
+
+[node name="LauncherSpawns" type="Node2D" parent="." unique_id=1836782034]
+
+[node name="Spawn0" type="Marker2D" parent="LauncherSpawns" unique_id=373908452]
+position = Vector2(460, 985)
+
+[node name="Spawn1" type="Marker2D" parent="LauncherSpawns" unique_id=87421278]
+position = Vector2(1460, 985)
+
+[node name="Spawn2" type="Marker2D" parent="LauncherSpawns" unique_id=769554561]
+position = Vector2(240, 985)
+
+[node name="Spawn3" type="Marker2D" parent="LauncherSpawns" unique_id=1514460968]
+position = Vector2(1680, 985)
+
+[node name="LauncherManager" type="Node2D" parent="." unique_id=691109091]
+script = ExtResource("9_launcher_mgr")
+
+[node name="Hammer" type="Node2D" parent="." unique_id=406144607]
+script = ExtResource("2_hammer")
+
+[node name="DamageNumberLayer" type="Node2D" parent="." unique_id=1547768041]
+
+[node name="MainCamera" type="Camera2D" parent="." unique_id=157701878]
+position = Vector2(960, 540)
+script = ExtResource("4_shake")
+
+[node name="GameBackground" type="CanvasLayer" parent="." unique_id=1411331563]
+layer = -1
+
+[node name="BgTexture" type="TextureRect" parent="GameBackground" unique_id=1177095847]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -1.0
+offset_top = -555.0
+offset_right = -6.0
+offset_bottom = -31.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("11_bg")
+stretch_mode = 6
+visible = false
+
+[node name="GoldHUD" parent="." unique_id=999427708 instance=ExtResource("5_hud")]
+
+[node name="UILayer" type="CanvasLayer" parent="." unique_id=999427707]
+layer = 15
+
+[node name="UpgradePanel" parent="UILayer" unique_id=194069787 instance=ExtResource("8_ui")]
+
+[node name="ReincarnationPanel" type="Control" parent="UILayer" unique_id=777000002]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("13_reinc")
+
+[node name="SettingsPanel" type="Control" parent="UILayer" unique_id=777000003]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("14_settings")
+
+[node name="TestPanel" type="CanvasLayer" parent="." unique_id=1880389157]
+layer = 90
+script = ExtResource("7_test")
+
+[node name="Onboarding" type="CanvasLayer" parent="." unique_id=2016208531]
+layer = 25
+script = ExtResource("10_onboarding")
