@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bj621m1a1iptx" path="res://scripts/MainMenu.gd" id="1_script"]
 [ext_resource type="Script" path="res://scripts/SettingsPanel.gd" id="5_settings"]
+[ext_resource type="Script" path="res://scripts/StatsPanel.gd" id="6_statspanel"]
 [ext_resource type="Texture2D" uid="uid://dmlcss25q66xu" path="res://assets/ui/主菜单背景.png" id="2_bg_bg"]
 [ext_resource type="Texture2D" uid="uid://bfukhjfeuwgt1" path="res://assets/ui/游戏菜单图.png" id="3_menu_art"]
 [ext_resource type="Texture2D" uid="uid://bfna4bdeu1jqh" path="res://assets/ui/开始按钮.png" id="4_start_btn"]
@@ -313,4 +314,14 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("5_settings")
+
+[node name="StatsPanel" type="Control" parent="." unique_id=2179440314]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("6_statspanel")
 

@@ -30,4 +30,6 @@
 | 调单局技能树（升级面板）/ 节点前置层级 | SkillTree.md | 先确认每线垂直多级树与统一前置规则，再动 UpgradePanel / UpgradeManager |
 | 校准 30 分钟单局数值节奏（点击CD/TTK/挡位/首转） | Numeric_Balance.md | 先读基线、CD 杠杆与节奏锚点，再动 Hammer / BuildingSetup / RP_GAIN_BASE |
 | 借鉴同类破坏型增量的设计方法 | Reference_WhatTheBuck.md | 读 What the Buck?! 公开设计 → 六条方法映射；只学方法、数值自压 |
+| 看完整 GDD（含设计决策与迭代过程） | GDD.md | 求职/整体视角：标准 GDD 框架 + 每章过程叙事；单点细节再按表查 |
+| 讲"我用 AI 提效"的作品集案例 | AI_Workflow.md | 求职用：AI 在开发全流程的使用、方法、边界与真实案例 |
 | 记录决策 / 测试结论 | EXPERIENCE.md 测试记录表 | 回填日期 + 一句话结论，供下轮迭代 |

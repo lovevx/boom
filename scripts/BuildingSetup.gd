@@ -411,9 +411,19 @@ func _on_block_shattered(block: BuildingBlock) -> void:
 	if block.is_falling():
 		_falling_blocks = maxi(_falling_blocks - 1, 0)
 	_cols[c].erase(block)
+	# 注意：此回调可能在物理回调栈（炸弹爆炸/连锁伤害的 intersect_shape）中同步触发，
+	# 压实与补层会实例化新刚体并改冻结/速度，在 flushing queries 阶段会报
+	# "body_set_shape_disabled" 错误，故推迟到物理步结束后再执行重建。
+	_deferred_rebuild_column(c)
+	_queue_chain_feedback()   # 同瞬摧毁计数：聚合多种碎裂来决定 档2/档3 反馈（由手感中枢裁决）
+
+
+# 推迟到物理步结束执行列重建（压实 + 补层），避免在物理回调/查询刷新期间改刚体状态。
+func _deferred_rebuild_column(c: int) -> void:
+	if not is_inside_tree():
+		return
 	_compact_column(c)
 	_maybe_refill(c)
-	_queue_chain_feedback()   # 同瞬摧毁计数：聚合多种碎裂来决定 档2/档3 反馈（由手感中枢裁决）
 
 
 # —— 崩塌音：同时下落的方块数达到阈值时触发一次 ——

@@ -47,6 +47,7 @@ func _ready() -> void:
 	$QuitButton.mouse_entered.connect(_on_ui_hover)
 	$SettingsButton.mouse_entered.connect(_on_ui_hover)
 	_close_btn.mouse_entered.connect(_on_ui_hover)
+	_build_stats_button()
 
 
 # 通用悬停提示音。
@@ -260,3 +261,32 @@ func _on_settings_pressed() -> void:
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()
+
+
+# —— 生涯统计：左下角入口按钮 + 打开面板 ——
+
+func _build_stats_button() -> void:
+	var btn := Button.new()
+	btn.position = Vector2(48, 950)
+	btn.size = Vector2(200, 54)
+	btn.text = "生涯统计"
+	btn.add_theme_font_size_override("font_size", 22)
+	btn.add_theme_color_override("font_color", Color(1, 0.96, 0.88))
+	btn.add_theme_color_override("font_hover_color", Color(1, 0.82, 0.28))
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.2, 0.24, 0.33, 0.94)
+	sb.set_corner_radius_all(10)
+	sb.set_border_width_all(2)
+	sb.border_color = Color(1, 0.7, 0.35, 0.9)
+	btn.add_theme_stylebox_override("normal", sb)
+	btn.add_theme_stylebox_override("hover", sb)
+	btn.add_theme_stylebox_override("pressed", sb)
+	btn.add_theme_stylebox_override("focus", sb)
+	btn.pressed.connect(_on_stats_pressed)
+	btn.mouse_entered.connect(_on_ui_hover)
+	add_child(btn)
+
+
+func _on_stats_pressed() -> void:
+	SoundManager.play("ui_click")
+	$StatsPanel.call("open")

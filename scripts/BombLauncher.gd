@@ -37,7 +37,7 @@ const SPAWN_Y := 985.0                     # LauncherManager 出生点标记的�
 const IDLE_FRAME_PNG := 6                  # 待机显示的帧（launcher_006，静止不循环）
 const ATK_FPS := 16.0                      # 攻击动画播放速率（帧/秒）
 const FIRE_FRAME_INDEX := 20               # 攻击序列中炮弹出膛帧（索引 0 对应 launcher_006 → 20 对应 026）
-                                           # 挺到这一帧才让炮弹沿炮口朝向飞出；效果可在此微调
+										   # 挺到这一帧才让炮弹沿炮口朝向飞出；效果可在此微调
 
 @onready var _turret: AnimatedSprite2D = $TurretSprite
 @onready var _muzzle: Marker2D = $MuzzlePosition
@@ -168,6 +168,10 @@ func _start_attack() -> void:
 	_firing = true
 	_turret.frame = 0
 	_turret.frame_changed.connect(_on_attack_frame)
+	# 防御：若上一发动画不明原因未触发 animation_finished（单次连接残留），先清掉旧连接再重挂，
+	# 避免 "already connected" 报错。
+	if _turret.animation_finished.is_connected(_on_attack_finished):
+		_turret.animation_finished.disconnect(_on_attack_finished)
 	_turret.animation_finished.connect(_on_attack_finished, CONNECT_ONE_SHOT)
 	_turret.play("attack")
 
@@ -178,7 +182,9 @@ func _on_attack_frame() -> void:
 		return
 	if _turret.frame < FIRE_FRAME_INDEX:
 		return
-	_firing = false
+	# 注意：这里保持 _firing=true（不提前复位），直到整段攻击动画播完触发 animation_finished。
+	# 若在出膛帧就置 false，而上一发的 animation_finished 单次连接仍挂着，短冷却（升级后）
+	# 在动画结束前再次 _start_attack 时会重复 connect，触发 "already connected" 报错。
 	_turret.frame_changed.disconnect(_on_attack_frame)
 	_launch_bomb(_pending_target)
 

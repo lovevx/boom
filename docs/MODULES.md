@@ -13,13 +13,14 @@
 | BuildingBlock | [BuildingBlock.gd](file:///e:/godotproject/boomame/scripts/BuildingBlock.gd) | 方块本体：血量、受击碎裂、越界清理；提供 launch / take_damage 接口；碎裂时产出金币 | 输入：launch(方向,冲击)、take_damage(伤害)；输出：碎裂时生成视觉破碎碎屑、产出金币 | 依赖 Debris、GoldManager、GoldPopup |
 | Debris | [Debris.gd](file:///e:/godotproject/boomame/scripts/Debris.gd) | 破碎碎屑（视觉特效）：向外飞散、缩小并淡出后自毁；不做物理掉落 | 输入：size / base_color；输出：无 | 无 |
 | CameraShake | [CameraShake.gd](file:///e:/godotproject/boomame/scripts/CameraShake.gd) | 震屏：在 duration 内随机偏移 offset，随时间线性衰减 | 输入：shake(强度, 时长)；输出：无 | 无 |
-| GoldManager | [GoldManager.gd](file:///e:/godotproject/boomame/scripts/GoldManager.gd) | 全局金币单例（Autoload）：累加总金币并广播 gold_changed 信号；提供 reset() 归零金币（供"重新开始"） | 输入：add_gold(数量)；输出：gold_changed(新总数) | 无 |
+| GoldManager | [GoldManager.gd](file:///e:/godotproject/boomame/scripts/GoldManager.gd) | 全局金币单例（Autoload）：累加总金币并广播 gold_changed 信号；维护生涯总统计（击破方块数 / 累计获取金币），供 SaveManager 独立存档、主菜单统计面板展示；提供 reset() 归零本局金币（供"重新开始"，不清生涯统计） | 输入：add_gold(数量)、register_destroyed()；输出：gold_changed(新总数)；经 restore_life_stats(blocks,gold) 恢复生涯统计 | 无 |
 | UpgradeManager | [UpgradeManager.gd](file:///e:/godotproject/boomame/scripts/UpgradeManager.gd) | 全局升级管理器（Autoload）：统一管理锤子/金币/建筑/炸弹各升级项的等级与派生数值，实时供玩法读取；提供 reset() 复位全部等级与数值并广播变更（供"重新开始"） | 输入：各 upgrade_* 调用；输出：upgrades_changed、launcher_upgraded(new_level) | 无 |
 | GoldPopup | [GoldPopup.gd](file:///e:/godotproject/boomame/scripts/GoldPopup.gd) / [GoldPopup.tscn](file:///e:/godotproject/boomame/scenes/GoldPopup.tscn) | 金币弹出提示（视觉特效）：在破坏点弹出 "+N 金币"，上飘淡出自毁；不做物理掉落，遵循破碎/粉碎取向；入树即加入 in_game_entity 组供重置清理 | 输入：amount；输出：无 | 无 |
 | GoldHUD | [GoldHUD.gd](file:///e:/godotproject/boomame/scripts/GoldHUD.gd) | 金币 UI：左上角显示总金币，监听 GoldManager 实时刷新；顶部含"技能树 / 重新开始 / 返回主菜单"按钮；重新开始带"二次确认"框，确认后一次性重置金币/升级/楼体/场上残留并关闭技能树；返回主菜单带碎块转场切回 MainMenu | 输入：GoldManager.gold_changed；输出：更新金币文案、执行重置流程、执行返回主菜单转场 | 依赖 GoldManager、UpgradeManager、Building、DamageNumberLayer、ScreenTransition |
 | Onboarding | [Onboarding.gd](file:///e:/godotproject/boomame/scripts/Onboarding.gd) | 动作驱动分步新手引导：玩家每完成一个关键动作才浮现下一条提示；含底部文字条、手型箭头、锤头亮圈、绕免按钮、每步轻提醒；完成/跳过写持久标记 `user://onboarding.cfg` | 输入：监听 Hammer.swung、GoldManager.gold_changed、UpgradeManager.launcher_upgraded、UpgradePanel.visibility_changed、BombProjectile.exploded；输出：引导 UI、持久标记 | 依赖 GoldManager、UpgradeManager、Hammer、UpgradePanel；只做单向监听不改写模块逻辑 |
 | Main（场景） | [Main.tscn](file:///e:/godotproject/boomame/scenes/Main.tscn) | 组装一切：边界墙/地面、Building、LauncherManager（预置 BombLauncher 与 Spawn 点）、Hammer、MainCamera、GoldHUD、UILayer（UpgradePanel）；炮台与炮弹统一挂载在 Main 下 | 输入：无；输出：运行入口场景 | 组装所有模块 |
 | ScreenTransition | [ScreenTransition.gd](file:///e:/godotproject/boomame/scripts/ScreenTransition.gd) | 场景切换过场（Autoload 常驻）：抓取当前画面切成矩形碎块，碎块带重力/旋转/爆散下落，延时切场后露出新场景，全部移出自动清理；过渡期拦截输入 | 输入：transition_to(目标场景路径)；输出：执行 change_scene、生成/清理碎块 | 依赖 SceneTree / Viewport（标准 API，无玩法模块依赖） |
+| StatsPanel | [StatsPanel.gd](file:///e:/godotproject/boomame/scripts/StatsPanel.gd) | 主菜单"生涯统计"面板：全屏暗化 + 居中卡片，展示两个跨局累计数字（击破方块数量 / 总获取金币），只增不减；数据由 SaveManager 独立存档 `life_stats.cfg` | 输入：读取 GoldManager.stats_*；输出：主菜单可打开/关闭的统计面板 | 依赖 GoldManager、SaveManager |
 
 ## 依赖图
 

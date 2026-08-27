@@ -11,6 +11,9 @@ Desktop.ini
 /export/
 *.tmp
 
+# Source/raw assets (PSD, GIF, original frame sets) — kept locally, not tracked
+/assets/_src/
+
 # Logs
 *.log
 

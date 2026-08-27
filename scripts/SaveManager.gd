@@ -9,6 +9,7 @@ extends Node
 
 const SLOT_COUNT := 3
 const SAVE_PATH_TMPL := "user://save_slot_%d.cfg"
+const LIFE_STATS_PATH := "user://life_stats.cfg"   # 生涯总统计（跨槽位，不属于任一槽位）
 const OLD_REINCARNATION_PATH := "user://reincarnation_save.cfg"   # 旧版单档（仅迁移用）
 const AUTOSAVE_INTERVAL := 30.0   # 定时自动存档间隔（秒）
 
@@ -19,6 +20,7 @@ var onboarding_pending := false   # 当前槽位是否仍需显示新手教程�
 
 func _ready() -> void:
 	_migrate_old_save()
+	_load_life_stats()
 	_start_autosave()
 
 
@@ -100,6 +102,7 @@ func save_slot(slot: int) -> void:
 	# 新手教程完成标记（每槽位独立）
 	cfg.set_value("onboarding", "done", not onboarding_pending)
 	cfg.save(_slot_path(slot))
+	_save_life_stats()
 
 
 # 保存到当前活动槽位（惰性落盘到 active_slot；自动存档定时器 / 关键节点临时触发共用）。
@@ -178,3 +181,21 @@ func delete_slot(slot: int) -> void:
 		DirAccess.open("user://").remove(path.get_file())
 	if active_slot == slot:
 		active_slot = -1
+
+
+# —— 生涯总统计持久化（独立文件，跨槽位共享，只增不减）——
+
+func _save_life_stats() -> void:
+	var cfg := ConfigFile.new()
+	cfg.set_value("stats", "blocks_destroyed", GoldManager.stats_blocks_destroyed)
+	cfg.set_value("stats", "gold_earned", GoldManager.stats_gold_earned)
+	cfg.save(LIFE_STATS_PATH)
+
+
+func _load_life_stats() -> void:
+	var cfg := ConfigFile.new()
+	if cfg.load(LIFE_STATS_PATH) != OK:
+		return
+	GoldManager.restore_life_stats(
+		int(cfg.get_value("stats", "blocks_destroyed", 0)),
+		int(cfg.get_value("stats", "gold_earned", 0)))
