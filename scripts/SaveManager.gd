@@ -148,7 +148,7 @@ func load_slot(slot: int) -> bool:
 	onboarding_pending = not bool(cfg.get_value("onboarding", "done", false))
 	# 2) 单局层：重置起点 → 永久加成折叠 → 叠加存档等级
 	UpgradeManager.reset()
-	ReincarnationManager.apply_permanent_bonuses()
+	ReincarnationManager.apply_permanent_bonuses(false)
 	UpgradeManager.set_state_from_save(cfg.get_value("upgrades", "levels", {}))
 	# 3) 金币覆盖（apply_permanent_bonuses 注入的初始资金以存档值为准）
 	GoldManager.restore_state(
@@ -163,6 +163,9 @@ func load_slot(slot: int) -> bool:
 func start_new_game(slot: int) -> void:
 	active_slot = slot
 	onboarding_pending = true   # 新存档需要走新手教程
+	ReincarnationManager.reincarnation_points = 0
+	ReincarnationManager.total_reincarnations = 0
+	ReincarnationManager.permanent_nodes.clear()
 	GoldManager.reset()
 	UpgradeManager.reset()
 	ReincarnationManager.apply_permanent_bonuses()

@@ -13,7 +13,7 @@ config_version=5
 config/name="Boomame"
 run/main_scene="res://scenes/MainMenu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
-config/icon="res://icon.svg"
+config/icon="res://assets/presentation/icons/bomb.png"
 
 [autoload]
 
@@ -24,6 +24,8 @@ SoundManager="*res://scripts/SoundManager.gd"
 ScreenTransition="*res://scripts/ScreenTransition.gd"
 ReincarnationManager="*res://scripts/ReincarnationManager.gd"
 SaveManager="*res://scripts/SaveManager.gd"
+Presentation="*res://scripts/Presentation.gd"
+MCPGameBridge="res://addons/godot_mcp/game_bridge/mcp_game_bridge.gd"
 
 [display]
 
@@ -31,6 +33,21 @@ window/size/viewport_width=1920
 window/size/viewport_height=1080
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot_mcp/plugin.cfg")
+
+[godot_mcp]
+
+bind_mode=0
+custom_bind_ip=""
+port_override_enabled=false
+port_override=6550
+
+[gui]
+
+theme/custom="res://assets/presentation/theme.tres"
 
 [physics]
 

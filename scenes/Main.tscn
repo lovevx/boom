@@ -10,7 +10,7 @@
 [ext_resource type="Script" path="res://scripts/SettingsPanel.gd" id="14_settings"]
 [ext_resource type="Script" uid="uid://ctuukj31hm86f" path="res://scripts/LauncherManager.gd" id="9_launcher_mgr"]
 [ext_resource type="Script" uid="uid://bi5w2lgugejld" path="res://scripts/Onboarding.gd" id="10_onboarding"]
-[ext_resource type="Texture2D" uid="uid://pqq6ygtaevi4" path="res://assets/ui/游戏界面背景.png" id="11_bg"]
+[ext_resource type="Texture2D" path="res://assets/presentation/yard.png" id="11_bg"]
 [ext_resource type="Script" path="res://scripts/Background.gd" id="12_bg3"]
 
 [sub_resource type="RectangleShape2D" id="Rect_wall_l"]
@@ -47,6 +47,11 @@ script = ExtResource("12_bg3")
 
 [node name="Building" type="Node2D" parent="." unique_id=1248501446]
 script = ExtResource("1_setup")
+
+[node name="TowerContactShadow" type="Polygon2D" parent="."]
+z_index = -5
+polygon = PackedVector2Array(688, 998, 1188, 998, 1210, 1012, 666, 1012)
+color = Color(0.12, 0.12, 0.16, 0.3)
 
 [node name="Ground" type="StaticBody2D" parent="." unique_id=1129229324]
 position = Vector2(960, 1040)
@@ -132,3 +137,5 @@ script = ExtResource("7_test")
 [node name="Onboarding" type="CanvasLayer" parent="." unique_id=2016208531]
 layer = 25
 script = ExtResource("10_onboarding")
+
+

@@ -58,7 +58,12 @@ func _offset_from_mouse() -> Vector2:
 # 自动挥砸：全自动模式下连续在鼠标指向处挥砸（跟随鼠标瞄准，带范围时一次砸中一片）。
 func _maybe_auto_smash() -> void:
 	_cd_left = maxf(1.0 / maxf(attack_speed * UpgradeManager.hammer_speed, 0.001), MIN_COOLDOWN)
-	_smash(get_global_mouse_position())
+	var building := get_tree().current_scene.get_node_or_null("Building")
+	if building == null:
+		return
+	var target: RigidBody2D = building.get_lowest_alive_block()
+	if target != null:
+		_smash(target.global_position)
 
 
 # 挥砸：命中点击处一定半径内所有方块，扣血打飞，并播放挥击动画。
@@ -138,6 +143,8 @@ func _find_blocks(at: Vector2) -> Array[BuildingBlock]:
 
 # 挥砸动画：锤头扑向点击点再缩回。
 func _play_swing(at: Vector2) -> void:
+	if Presentation.reduced_motion:
+		return
 	_swinging = true
 	global_position = at
 	rotation = -0.9
@@ -152,13 +159,10 @@ func _play_swing(at: Vector2) -> void:
 # 圆形锤头占位：填充圆 + 外圈描边 + 内圈高光。
 func _draw() -> void:
 	_draw_range()
-	draw_circle(Vector2.ZERO, radius, Color(0.55, 0.55, 0.58, 0.95))
-	draw_arc(Vector2.ZERO, radius, 0.0, TAU, 32, Color(0.26, 0.26, 0.29), 3.0)
-	draw_circle(Vector2(-7.0, -7.0), radius * 0.22, Color(1.0, 1.0, 1.0, 0.3))
+	draw_texture_rect(Presentation.icon("hammer"), Rect2(-28,-32,56,56), false)
 	_draw_cooldown_ring()
 
 
-# 攻击范围指示圈：始终以鼠标真实位置为中心可视化命中半径（半透明圆环）。
 func _draw_range() -> void:
 	var r: float = UpgradeManager.hammer_range
 	if r <= 0.0:

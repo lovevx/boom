@@ -23,10 +23,10 @@ const UI_BASE_DB := -6.0
 const SETTINGS_PATH := "user://settings.cfg"
 # 背景音乐候选曲目（按 index 切换，设置界面可手动换曲）
 const BGM_FILES := [
-	"res://assets/audio/bgm/BGM1.mp3",
-	"res://assets/audio/bgm/bgm2.mp3",
+	"res://assets/presentation/audio/yard_shift.wav",
+	"res://assets/presentation/audio/demolition_rhythm.wav",
 ]
-const BGM_NAMES := ["BGM 1", "BGM 2"]   # 设置界面显示的曲名
+const BGM_NAMES := ["晴日工地", "拆除节拍"]   # 设置界面显示的曲名
 
 # 当前音量（0.0~1.0，100% = 保持总线基准）与选中的 BGM 序号。
 var music_volume := 1.0
@@ -39,25 +39,26 @@ signal settings_changed
 # —— 音效清单表：名称 → 配置 ——
 # path：assets/audio/ 下的候选文件路径（放好文件即生效）；bus：所属总线；volume：dB。
 const TABLE := {
+	"shatter_metal": {"path":"res://assets/presentation/audio/sfx/shatter_metal.wav", "bus":CAT_SFX, "volume":-8.0},
 	# —— 玩法（SFX 总线）——
-	"hammer_swing":    {"path": "res://assets/audio/sfx/gameplay/hammer_swing.wav",   "bus": CAT_SFX, "volume": -6.0},
-	"hammer_hit":      {"path": "res://assets/audio/sfx/gameplay/hammer_hit.wav",     "bus": CAT_SFX, "volume": -4.0},
-	"shatter_glass":   {"path": "res://assets/audio/sfx/gameplay/shatter_glass.mp3", "bus": CAT_SFX, "volume": -5.0},
-	"shatter_stone":   {"path": "res://assets/audio/sfx/gameplay/shatter_stone.mp3", "bus": CAT_SFX, "volume": -5.0},
-	"collapse":        {"path": "res://assets/audio/sfx/gameplay/collapse.mp3",      "bus": CAT_SFX, "volume": -3.0},
-	"coin":            {"path": "res://assets/audio/sfx/gameplay/coin.wav",           "bus": CAT_SFX, "volume": -6.0},
-	"explosion":       {"path": "res://assets/audio/sfx/gameplay/explosion.wav",      "bus": CAT_SFX, "volume": -6.0},
-	"launcher_shoot":  {"path": "res://assets/audio/sfx/gameplay/launcher_shoot.wav", "bus": CAT_SFX, "volume": -6.0},
-	"launcher_deploy": {"path": "res://assets/audio/sfx/gameplay/launcher_deploy.wav","bus": CAT_SFX, "volume": -4.0},
-	"damage_tick":     {"path": "res://assets/audio/sfx/gameplay/damage_tick.wav",    "bus": CAT_SFX, "volume": -10.0},
+	"hammer_swing":    {"path": "res://assets/presentation/audio/sfx/hammer_swing.wav",   "bus": CAT_SFX, "volume": -6.0},
+	"hammer_hit":      {"path": "res://assets/presentation/audio/sfx/hammer_hit.wav",     "bus": CAT_SFX, "volume": -4.0},
+	"shatter_glass":   {"path": "res://assets/presentation/audio/sfx/shatter_glass.wav", "bus": CAT_SFX, "volume": -5.0},
+	"shatter_stone":   {"path": "res://assets/presentation/audio/sfx/shatter_stone.wav", "bus": CAT_SFX, "volume": -5.0},
+	"collapse":        {"path": "res://assets/presentation/audio/sfx/collapse.wav",      "bus": CAT_SFX, "volume": -3.0},
+	"coin":            {"path": "res://assets/presentation/audio/sfx/coin.wav",           "bus": CAT_SFX, "volume": -6.0},
+	"explosion":       {"path": "res://assets/presentation/audio/sfx/explosion.wav",      "bus": CAT_SFX, "volume": -6.0},
+	"launcher_shoot":  {"path": "res://assets/presentation/audio/sfx/launcher_shoot.wav", "bus": CAT_SFX, "volume": -6.0},
+	"launcher_deploy": {"path": "res://assets/presentation/audio/sfx/launcher_deploy.wav","bus": CAT_SFX, "volume": -4.0},
+	"damage_tick":     {"path": "res://assets/presentation/audio/sfx/damage_tick.wav",    "bus": CAT_SFX, "volume": -10.0},
 	# —— 界面（UI 总线）——
-	"ui_click":        {"path": "res://assets/audio/sfx/ui/ui_click.wav",             "bus": CAT_UI, "volume": -9.0},
-	"ui_hover":        {"path": "res://assets/audio/sfx/ui/ui_hover.wav",             "bus": CAT_UI, "volume": -14.0},
-	"upgrade":         {"path": "res://assets/audio/sfx/ui/upgrade.wav",              "bus": CAT_UI, "volume": -6.0},
-	"error":           {"path": "res://assets/audio/sfx/ui/error.wav",                "bus": CAT_UI, "volume": -8.0},
-	"onboarding_pop":  {"path": "res://assets/audio/sfx/ui/onboarding_pop.wav",       "bus": CAT_UI, "volume": -10.0},
+	"ui_click":        {"path": "res://assets/presentation/audio/sfx/ui_click.wav",             "bus": CAT_UI, "volume": -9.0},
+	"ui_hover":        {"path": "res://assets/presentation/audio/sfx/ui_hover.wav",             "bus": CAT_UI, "volume": -14.0},
+	"upgrade":         {"path": "res://assets/presentation/audio/sfx/upgrade.wav",              "bus": CAT_UI, "volume": -6.0},
+	"error":           {"path": "res://assets/presentation/audio/sfx/error.wav",                "bus": CAT_UI, "volume": -8.0},
+	"onboarding_pop":  {"path": "res://assets/presentation/audio/sfx/onboarding_pop.wav",       "bus": CAT_UI, "volume": -10.0},
 	# —— 场景切换（UI 总线）——
-	"scene_transition":{"path": "res://assets/audio/transitions/scene_transition.wav","bus": CAT_UI, "volume": -5.0},
+	"scene_transition":{"path": "res://assets/presentation/audio/sfx/scene_transition.wav","bus": CAT_UI, "volume": -5.0},
 }
 
 # 各总线播放器池大小：SFX 玩法音量大、常同时爆多（连锁破坏），给足槽位；
@@ -65,6 +66,9 @@ const TABLE := {
 const SFX_POOL_SIZE := 20
 const UI_POOL_SIZE := 8
 
+var _last_played := {}
+var _duck_tween: Tween
+var _music_nominal_db := -6.0
 var _streams := {}                       # 音效名 -> AudioStream（文件优先，否则合成）
 var _pool := {}                          # 总线名 -> Array[AudioStreamPlayer]
 var _music: AudioStreamPlayer            # BGM 单播放器
@@ -77,10 +81,25 @@ func _ready() -> void:
 	_build_pool()
 	_setup_music()
 	_generate_all()
+	var limiter := AudioEffectLimiter.new()
+	limiter.ceiling_db = -1.0
+	limiter.threshold_db = -6.0
+	AudioServer.add_bus_effect(0, limiter)
 
 
 # —— 对外统一入口：播放一个预设音效（叠加安全，复用池内播放器） ——
 func play(name: String) -> void:
+	var now := Time.get_ticks_msec()
+	var cooldown: int = 100 if name in ["coin", "damage_tick", "ui_hover"] else (70 if name.begins_with("shatter") else 0)
+	if now - int(_last_played.get(name, -100000)) < cooldown:
+		return
+	_last_played[name] = now
+	if name == "explosion" and is_instance_valid(_music):
+		if _duck_tween and _duck_tween.is_valid():
+			_duck_tween.kill()
+		_music.volume_db = _music_nominal_db - 5.0
+		_duck_tween = create_tween()
+		_duck_tween.tween_property(_music, "volume_db", _music_nominal_db, 0.4)
 	var stream: AudioStream = _streams.get(name)
 	if stream == null:
 		return   # 未注册的音效直接忽略
@@ -90,7 +109,8 @@ func play(name: String) -> void:
 	if player == null:
 		return   # 该总线播放器全忙：丢弃本次额外播放（大量同时破坏时自动合并，防爆音/断音）
 	player.stream = stream
-	player.volume_db = cfg["volume"]
+	player.volume_db = cfg["volume"] - 3.0
+	player.pitch_scale = randf_range(0.95, 1.05) if bus == CAT_SFX else 1.0
 	player.play()
 
 
@@ -105,6 +125,7 @@ func _acquire(arr: Array) -> AudioStreamPlayer:
 
 # —— 背景音乐：播放当前选中的曲目（BGM_FILES[bgm_index]），默认循环 ——
 func play_music(volume_db: float = -6.0, loop: bool = true) -> void:
+	_music_nominal_db = volume_db
 	var path: String = BGM_FILES[bgm_index]
 	if not ResourceLoader.exists(path):
 		push_warning("SoundManager: BGM 文件不存在 %s" % path)
@@ -117,7 +138,9 @@ func play_music(volume_db: float = -6.0, loop: bool = true) -> void:
 		return
 	s = _dup_stream(s)
 	if s is AudioStreamWAV:
-		s.loop_mode = AudioStreamWAV.LOOP_FORWARD
+		s.loop_mode = AudioStreamWAV.LOOP_FORWARD if loop else AudioStreamWAV.LOOP_DISABLED
+		s.loop_begin = 0
+		s.loop_end = roundi(s.get_length() * s.mix_rate)
 	elif s is AudioStreamOggVorbis:
 		s.loop = loop
 	elif s is AudioStreamMP3:

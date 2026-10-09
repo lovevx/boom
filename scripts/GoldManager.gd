@@ -35,6 +35,14 @@ func add_gold(amount: int) -> void:
 	gold_changed.emit(total_gold)
 
 
+# 开局资金只增加余额，不算拆楼产出或生涯收入，不能用于循环刷 RP。
+func grant_starting_gold(amount: int) -> void:
+	if amount <= 0:
+		return
+	total_gold += amount
+	gold_changed.emit(total_gold)
+
+
 # 扣除金币（用于升级消耗）。金币足够则扣除并广播，返回 true；否则不操作返回 false。
 func spend_gold(amount: int) -> bool:
 	if amount <= 0:

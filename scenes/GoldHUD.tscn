@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cahgj2cb46586"]
 
 [ext_resource type="Script" uid="uid://d107woryw7yik" path="res://scripts/GoldHUD.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/ui/金币UIpng.png" id="2_coin"]
+[ext_resource type="Texture2D" path="res://assets/presentation/icons/coin.png" id="2_coin"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_skill"]
 content_margin_left = 16.0
@@ -233,3 +233,5 @@ theme_override_styles/pressed = SubResource("StyleBox_btn_ok")
 theme_override_styles/hover = SubResource("StyleBox_btn_ok")
 theme_override_styles/focus = SubResource("StyleBox_btn_ok")
 text = "确定重新开始"
+
+

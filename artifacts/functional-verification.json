@@ -1,0 +1,210 @@
+{
+	"checks": [
+		{
+			"details": 360,
+			"name": "initial_360_blocks",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "hammer_damage_unchanged",
+			"passed": true
+		},
+		{
+			"details": 1,
+			"name": "shatter_gold_unchanged",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "column_refill",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "reserve_fragment_budget",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "budget_never_suppresses_rewards",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "four_launchers",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "max_rate_matches_current_balance",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "automatic_bombing_destroys_blocks",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "upgrade_pauses_game",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "tooltip_newlines",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "upgrade_bounds_(1280, 720)",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "screen_to_hit_mapping_(1280, 720)",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "upgrade_bounds_(1920, 1080)",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "screen_to_hit_mapping_(1920, 1080)",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "upgrade_bounds_(2560, 1440)",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "screen_to_hit_mapping_(2560, 1440)",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "upgrade_bounds_(3440, 1440)",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "screen_to_hit_mapping_(3440, 1440)",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "upgrade_resumes_game",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "strong_feedback",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "reduced_motion_resets_time",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "reduced_motion_blocks_slowmo",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "presentation_preferences_saved",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "low_effect_density",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "save_load",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "save_values_preserved",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "restart_cancel_preserves_progress",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "restart_resets_scene",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "restart_time_reset",
+			"passed": true
+		},
+		{
+			"details": {
+				"blast": 0,
+				"coin": 0,
+				"dust": 0,
+				"fragment": 0,
+				"hit": 0,
+				"number": 0,
+				"popup": 0
+			},
+			"name": "temporary_budget_released",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "reincarnation_confirmation",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "reincarnation_returns_menu",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "reincarnation_formula_preserved",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "continue_saved_game",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "music_has_real_loop",
+			"passed": true
+		},
+		{
+			"details": null,
+			"name": "master_limiter_present",
+			"passed": true
+		}
+	],
+	"engine": {
+		"build": "steam",
+		"hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+		"hex": 263938,
+		"major": 4,
+		"minor": 7,
+		"patch": 2,
+		"status": "stable",
+		"string": "4.7.2-stable (steam)",
+		"timestamp": 0
+	},
+	"failures": [],
+	"user_dir": "C:/Users/31992/AppData/Roaming/Godot/app_userdata/BoomamePresentationValidation"
+}

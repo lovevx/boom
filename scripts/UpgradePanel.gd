@@ -18,8 +18,8 @@ const OCT_R := 30.0      # 八边形节点外接圆半径
 const HUB_R := 44.0      # 中心 Hub 半径
 const SPACING := 74.0    # 同 tier 相邻节点间距
 const L1 := 160.0        # tier1 距 Hub
-const L2 := 280.0        # tier2 距 Hub
-const L3 := 395.0        # tier3 距 Hub
+const L2 := 245.0        # tier2 距 Hub
+const L3 := 330.0        # tier3 距 Hub
 const GOLD := Color(0.94, 0.75, 0.19)     # 已点亮/高亮金橙色
 const LGRAY := Color(0.45, 0.45, 0.5)     # 锁定/未激活
 
@@ -38,7 +38,7 @@ var _link_layer: Control
 # 面板承载树（含标题/金币/关闭/连线/节点/卡片）。
 var _tree: Control
 var _coin_label: Label
-var _hub_center: Vector2 = Vector2(900, 440)
+var _hub_center: Vector2 = Vector2(900, 420)
 var _all_cards: Array[Dictionary] = []     # 全部节点
 var _center_map: Dictionary = {}           # id → 节点中心
 var _t: float = 0.0                        # 连线/Hub 脉动相位
@@ -62,7 +62,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if not visible:
+	if not visible or Presentation.reduced_motion:
 		return
 	_t += delta
 	_link_layer.queue_redraw()
@@ -74,10 +74,7 @@ func open() -> void:
 	show()
 	get_tree().paused = true   # 暂停整个游戏：升级面板期间主界面停止运行
 	refresh_all()
-	# 整体淡入进场（0.18 秒），让"独立界面"出现得更清晰
-	var t := create_tween()
-	modulate = Color(1, 1, 1, 0)
-	t.tween_property(self, "modulate", Color.WHITE, 0.18)
+	Presentation.dialog_enter(self)
 
 
 func close() -> void:
@@ -96,6 +93,11 @@ func node_screen_pos(nid: String) -> Vector2:
 # —— UI 搭建 ——
 
 # 全屏调暗底板：点击空白处 → 若卡片打开则先收起卡片；否则关闭整个技能树。
+func _unhandled_key_input(event: InputEvent) -> void:
+	if visible and event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		close()
+		get_viewport().set_input_as_handled()
+
 func _build_dim() -> void:
 	var dim := Button.new()
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -124,10 +126,11 @@ func _build_tree_panel() -> void:
 	_tree.size = panel_size
 	_tree.clip_contents = true
 	add_child(_tree)
+	Presentation.bind_dialog(_tree,panel_size,false)
 
 	# 深绿底色
 	var bg := ColorRect.new()
-	bg.color = Color(0x14, 0x1d, 0x14) / 255.0
+	bg.color = Presentation.PROFILE.panel
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_tree.add_child(bg)
@@ -137,7 +140,7 @@ func _build_tree_panel() -> void:
 	noise_rect.texture = _make_noise_texture()
 	noise_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	noise_rect.stretch_mode = TextureRect.STRETCH_SCALE
-	noise_rect.modulate = Color(1, 1, 1, 0.35)
+	noise_rect.modulate = Color(1, 1, 1, 0.06)
 	noise_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_tree.add_child(noise_rect)
 
@@ -172,6 +175,14 @@ func _build_tree_panel() -> void:
 	close_btn.add_theme_font_size_override("font_size", 28)
 	close_btn.pressed.connect(close)
 	_tree.add_child(close_btn)
+	var guide := Label.new()
+	guide.position = Vector2(42,150)
+	guide.size = Vector2(360,360)
+	guide.text = "拆除成长路线\n\n悬停节点查看效果与价格\n点击亮色节点购买升级\n\n灰色锁：尚未解锁\n分支色：可以升级\n金色框：已点亮 / 已满级\n\n升级后立即生效"
+	guide.add_theme_font_size_override("font_size",22)
+	guide.add_theme_color_override("font_color",Presentation.PROFILE.muted)
+	guide.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_tree.add_child(guide)
 
 
 func _make_noise_texture() -> Texture2D:
@@ -201,7 +212,7 @@ func _build_nodes() -> void:
 			"src": "hammer_damage", "cost": UpgradeManager.get_crit_chance_cost, "upgrade": UpgradeManager.upgrade_crit_chance,
 			"effect": func() -> String: return "暴击率 %d%%" % int(UpgradeManager.crit_chance * 100.0)},
 		{"id": "crit_mult", "title": "暴击伤害", "branch": "hammer", "tier": 3, "slot": 2, "icon": "✹",
-			"src": "hammer_damage", "cost": UpgradeManager.get_crit_mult_cost, "upgrade": UpgradeManager.upgrade_crit_mult,
+			"src": "crit_chance", "cost": UpgradeManager.get_crit_mult_cost, "upgrade": UpgradeManager.upgrade_crit_mult,
 			"effect": func() -> String: return "暴击伤害 ×%0.1f" % UpgradeManager.crit_multiplier},
 		# 金币(→ 右)，金币倍率 与 基础金币 同级并置
 		{"id": "coin_multiplier", "title": "金币倍率", "branch": "econ", "tier": 1, "slot": 1, "icon": "$",
@@ -230,7 +241,7 @@ func _build_nodes() -> void:
 			"src": "bomb_damage", "cost": UpgradeManager.get_chain_cost, "upgrade": UpgradeManager.upgrade_chain,
 			"effect": func() -> String: return "爆炸连锁加伤 %d%%" % int(UpgradeManager.chain_damage * 100.0)},
 		{"id": "scatter", "title": "散射炮", "branch": "bomb", "tier": 3, "slot": 2, "icon": "✸",
-			"src": "bomb_damage", "cost": UpgradeManager.get_scatter_cost, "upgrade": UpgradeManager.upgrade_scatter,
+			"src": "bomb_radius", "cost": UpgradeManager.get_scatter_cost, "upgrade": UpgradeManager.upgrade_scatter,
 			"effect": func() -> String: return "每次发射 ×%d" % UpgradeManager.get_scatter_count()},
 		# 建筑(← 左)
 		{"id": "building_drop_speed", "title": "下落速度", "branch": "build", "tier": 1, "slot": 1, "icon": "⬇",
@@ -274,13 +285,13 @@ func _make_octagon(d: Dictionary) -> void:
 			SoundManager.play("ui_click")
 			_try_upgrade(d))
 	# 图标（中心）
-	var icon_lb := Label.new()
-	icon_lb.text = d["icon"]
-	icon_lb.size = Vector2(r * 2, r * 2)
-	icon_lb.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	icon_lb.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	icon_lb.add_theme_font_size_override("font_size", 22)
-	icon_lb.add_theme_color_override("font_color", Color(1, 1, 1, 0.95))
+	var icon_lb := TextureRect.new()
+	icon_lb.texture = Presentation.icon({"hammer":"hammer","econ":"coin","bomb":"bomb","build":"building"}[d["branch"]])
+	icon_lb.position = Vector2(12,8)
+	icon_lb.size = Vector2(36,36)
+	icon_lb.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon_lb.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon_lb.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	oct.add_child(icon_lb)
 	# 等级（右下角）
 	var lvlb := Label.new()
@@ -288,16 +299,27 @@ func _make_octagon(d: Dictionary) -> void:
 	lvlb.position = Vector2(r * 0.6, r * 1.05)
 	lvlb.size = Vector2(r * 1.2, 20)
 	lvlb.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lvlb.add_theme_font_size_override("font_size", 13)
+	lvlb.add_theme_font_size_override("font_size", 18)
 	lvlb.add_theme_color_override("font_color", Color(1, 1, 1, 0.95))
 	oct.add_child(lvlb)
+	var caption := Label.new()
+	caption.text = d["title"]
+	caption.position = Vector2(-52,64)
+	caption.size = Vector2(164,22)
+	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	caption.add_theme_font_size_override("font_size",16)
+	caption.add_theme_color_override("font_color",d["color"])
+	caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if d["branch"] == "econ":
+		caption.position = Vector2(66,18)
+		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	oct.add_child(caption)
 	# 锁（锁定态覆盖）
-	var lock_lb := Label.new()
-	lock_lb.text = "🔒"
-	lock_lb.size = Vector2(r * 2, r * 2)
-	lock_lb.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lock_lb.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	lock_lb.add_theme_font_size_override("font_size", 20)
+	var lock_lb := TextureRect.new()
+	lock_lb.texture = Presentation.icon("lock")
+	lock_lb.position = Vector2(20,16)
+	lock_lb.size = Vector2(24,24)
+	lock_lb.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	lock_lb.visible = false
 	oct.add_child(lock_lb)
 	_tree.add_child(oct)
@@ -317,7 +339,7 @@ func _draw_octagon(oct: Control, d: Dictionary) -> void:
 		pts.append(c + Vector2(cos(a), sin(a)) * r)
 	var st: Variant = d.get("state", {})
 	var state: String = st.get("state", "available") if st is Dictionary else "available"
-	var fill := _darken(Color(0.12, 0.20, 0.14), 1.0)
+	var fill := _darken(Color(0.13, 0.23, 0.33), 1.0)
 	var outline := LGRAY
 	if state == "lit" or state == "maxed":
 		outline = GOLD
@@ -337,7 +359,7 @@ func _darken(col: Color, _dummy: float) -> Color:
 
 func _build_tip() -> void:
 	_tip = PanelContainer.new()
-	_tip.custom_minimum_size = Vector2(250, 0)
+	_tip.custom_minimum_size = Vector2(380, 0)
 	_tip.mouse_filter = Control.MOUSE_FILTER_IGNORE   # 不拦截任何点击
 	_tip.position = Vector2(-9999, -9999)
 	var sb := StyleBoxFlat.new()
@@ -358,10 +380,11 @@ func _build_tip() -> void:
 	_tip.add_child(vbox)
 
 	_tip_title = Label.new()
-	_tip_title.add_theme_font_size_override("font_size", 17)
+	_tip_title.add_theme_font_size_override("font_size", 22)
 	vbox.add_child(_tip_title)
 	_tip_body = Label.new()
-	_tip_body.add_theme_font_size_override("font_size", 14)
+	_tip_body.custom_minimum_size.x = 336
+	_tip_body.add_theme_font_size_override("font_size", 20)
 	_tip_body.add_theme_color_override("font_color", Color(0.85, 0.85, 0.85))
 	_tip_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox.add_child(_tip_body)
@@ -373,7 +396,9 @@ func _show_tip(d: Dictionary) -> void:
 	_tip_title.text = d["title"]
 	_tip_title.add_theme_color_override("font_color", d["color"])
 	var lines := PackedStringArray()
-	lines.append("效果：" + d["effect"].call())
+	lines.append("当前：" + UpgradeManager.get_node_effect(d["id"]))
+	if st.state != "maxed":
+		lines.append("下一级：" + UpgradeManager.get_node_effect(d["id"], true))
 	var lv: int = st.level
 	var max_lv: int = st.max_level
 	if max_lv >= 0:
@@ -382,7 +407,7 @@ func _show_tip(d: Dictionary) -> void:
 		lines.append("等级 Lv.%d" % lv)
 	match st.state:
 		"locked":
-			lines.append("🔒 需先解锁：%s" % st.reason)
+			lines.append("需先解锁：%s" % st.reason)
 		"maxed":
 			lines.append("已满级")
 		"lit", "available":
@@ -449,10 +474,11 @@ func _draw_flow_glow(canvas: CanvasItem, from: Vector2, to: Vector2, col: Color)
 
 func _draw_hub() -> void:
 	var c := _hub_center
-	_link_layer.draw_circle(c, HUB_R, Color(0.13, 0.26, 0.15))
+	_link_layer.draw_circle(c, HUB_R, Color(0.13, 0.26, 0.36))
 	_link_layer.draw_arc(c, HUB_R, 0, TAU, 64, GOLD, 3.0)
-	_link_layer.draw_arc(c, HUB_R - 7, 0, TAU, 56, Color(0.30, 0.55, 0.32), 2.0)
+	_link_layer.draw_arc(c, HUB_R - 7, 0, TAU, 56, Color(0.30, 0.55, 0.72), 2.0)
 	_link_layer.draw_circle(c, 5, Color(1, 0.85, 0.4))
+	_link_layer.draw_texture_rect(Presentation.icon("gear"),Rect2(c-Vector2(24,24),Vector2(48,48)),false)
 	for i in 8:
 		var a := TAU * i / 8.0 + _t * 0.3
 		var p := c + Vector2(cos(a), sin(a)) * HUB_R
@@ -498,23 +524,24 @@ func refresh_node(d: Dictionary) -> void:
 # 点击节点：直接加点（扣金币 + 升级 + 刷新 + 强反馈）。
 func _try_upgrade(d: Dictionary) -> void:
 	var st: Dictionary = UpgradeManager.get_node_state(d["id"])
-	if st.state == "locked":
+	if st.state == "locked" or st.state == "maxed":
 		SoundManager.play("error")   # 锁定：给个失败音，不执行
 		return
 	# 首次点亮：升级前该节点连线还是未点亮（available）；若已是 lit/maxed 则仅强化，不再播放连线冲程
 	var first_light: bool = st.state != "lit" and st.state != "maxed"
-	var cost: int = d["cost"].call()
-	if GoldManager.total_gold < cost:
+	if not UpgradeManager.purchase_node(d["id"]):
 		return
-	GoldManager.spend_gold(cost)
-	d["upgrade"].call()
 	SoundManager.play("upgrade")
 	refresh_all()
+	_show_tip(d)
 	_play_feedback(d, first_light)
 
 
 # 加点反馈：八边形缩放弹跳 + 金色光爆 + 彩色粒子飞溅 + "+1" 飘字 + 绿色↑箭头。
 func _play_feedback(d: Dictionary, first_light: bool) -> void:
+	if Presentation.reduced_motion:
+		refresh_node(d)
+		return
 	var oct: Control = d["hex"]
 	var center: Vector2 = d["center"]
 
@@ -544,6 +571,8 @@ func _play_fill_flow(d: Dictionary) -> void:
 
 # 沿分支方向向外飘一个绿色 ↑ 箭头，表达本分支提升方向。
 func _spawn_up_arrow(d: Dictionary) -> void:
+	if Presentation.reduced_motion:
+		return
 	var dir := _branch_dir(d["branch"])
 	var lbl := Label.new()
 	lbl.text = "▲"

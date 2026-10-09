@@ -12,6 +12,9 @@ const C_BTN_BG := Color(0.22, 0.26, 0.36, 1)
 const C_BTN_SEL := Color(0.55, 0.4, 0.15, 1)
 const C_BTN_HOVER := Color(0.3, 0.34, 0.46, 1)
 
+var _shake_slider: HSlider
+var _motion_checkbox: CheckBox
+var _density_select: OptionButton
 var _music_pct: Label          # 音乐音量百分比
 var _sfx_pct: Label            # 音效音量百分比
 var _music_slider: HSlider
@@ -22,6 +25,7 @@ var _bgm_btns: Array[Button] = []
 func _ready() -> void:
 	_build()
 	SoundManager.settings_changed.connect(_refresh)
+	Presentation.settings_changed.connect(_refresh)
 	_refresh()
 
 
@@ -29,7 +33,7 @@ func _ready() -> void:
 
 func open() -> void:
 	_refresh()
-	show()
+	Presentation.dialog_enter(self)
 
 
 func close() -> void:
@@ -37,6 +41,11 @@ func close() -> void:
 
 
 # —— 界面搭建（全部代码构建，风格对齐 ReincarnationPanel） ——
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	if visible and event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		close()
+		get_viewport().set_input_as_handled()
 
 func _build() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -47,7 +56,7 @@ func _build() -> void:
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(dim)
 
-	var panel_size := Vector2(640, 480)
+	var panel_size := Vector2(760, 790)
 	var scr := get_viewport_rect().size
 	var root := Control.new()
 	root.position = (scr - panel_size) / 2.0
@@ -126,11 +135,14 @@ func _build() -> void:
 		bgm_row.add_child(b)
 		_bgm_btns.append(b)
 	var bgm_hint := Label.new()
-	bgm_hint.text = "点击切换当前背景音乐，立即生效并自动保存"
+	bgm_hint.text = "点击切换，立即生效并自动保存"
 	bgm_hint.add_theme_font_size_override("font_size", 15)
 	bgm_hint.add_theme_color_override("font_color", C_MUTED)
 	bgm_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	bgm_wrap.add_child(bgm_hint)
+
+	_build_presentation_settings(vbox)
+	Presentation.bind_dialog(root,panel_size)
 
 	# —— 底部说明 ——
 	vbox.add_child(_spacer())
@@ -188,6 +200,7 @@ func _volume_row(caption: String, color: Color, kind: String) -> Control:
 func _spacer() -> Control:
 	var sp := Control.new()
 	sp.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	return sp
 
 
@@ -214,14 +227,64 @@ func _play_ui_click() -> void:
 
 # 同步滑块 / 百分比 / BGM 选中态到 SoundManager 当前值。
 func _refresh() -> void:
+	if _shake_slider:
+		_shake_slider.set_value_no_signal(Presentation.shake_strength)
+		_motion_checkbox.set_pressed_no_signal(Presentation.reduced_motion)
+		_density_select.select(1 if Presentation.low_effects else 0)
 	_music_slider.set_value_no_signal(SoundManager.music_volume)
 	_music_pct.text = "%d%%" % roundi(SoundManager.music_volume * 100.0)
 	_sfx_slider.set_value_no_signal(SoundManager.sfx_volume)
 	_sfx_pct.text = "%d%%" % roundi(SoundManager.sfx_volume * 100.0)
 	for i in _bgm_btns.size():
 		var selected := i == SoundManager.bgm_index
-		var sn := StyleBoxFlat.new()
-		sn.bg_color = C_BTN_SEL if selected else C_BTN_BG
-		sn.corner_radius_top_left = 10; sn.corner_radius_top_right = 10
-		sn.corner_radius_bottom_left = 10; sn.corner_radius_bottom_right = 10
+		var sn := Presentation.THEME.get_stylebox("normal", "Button").duplicate() as StyleBoxFlat
+		sn.bg_color = Presentation.PROFILE.panel_light if selected else Presentation.PROFILE.panel
+		sn.border_color = Presentation.PROFILE.gold if selected else Color("#4d7899")
 		_bgm_btns[i].add_theme_stylebox_override("normal", sn)
+
+
+func _build_presentation_settings(parent: VBoxContainer) -> void:
+	var heading := Label.new()
+	heading.text = "画面与动态效果"
+	heading.add_theme_font_size_override("font_size",26)
+	heading.add_theme_color_override("font_color",Presentation.PROFILE.cyan)
+	parent.add_child(heading)
+	var shake_row := HBoxContainer.new()
+	shake_row.add_theme_constant_override("separation",18)
+	parent.add_child(shake_row)
+	var label := Label.new()
+	label.text = "震屏强度"
+	label.custom_minimum_size.x = 150
+	shake_row.add_child(label)
+	_shake_slider = HSlider.new()
+	_shake_slider.name = "ShakeStrength"
+	_shake_slider.min_value = 0
+	_shake_slider.max_value = 1
+	_shake_slider.step = 0.05
+	_shake_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	shake_row.add_child(_shake_slider)
+	_shake_slider.value_changed.connect(func(value: float) -> void:
+		Presentation.shake_strength = value
+		Presentation.save_preferences())
+	_motion_checkbox = CheckBox.new()
+	_motion_checkbox.name = "ReducedMotion"
+	_motion_checkbox.text = "减少动态：关闭震屏、慢动作及大幅动画"
+	parent.add_child(_motion_checkbox)
+	_motion_checkbox.toggled.connect(func(value: bool) -> void:
+		Presentation.reduced_motion = value
+		Presentation.save_preferences())
+	var density_row := HBoxContainer.new()
+	parent.add_child(density_row)
+	var density_label := Label.new()
+	density_label.text = "特效密度"
+	density_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	density_row.add_child(density_label)
+	_density_select = OptionButton.new()
+	_density_select.name = "EffectDensity"
+	_density_select.add_item("标准")
+	_density_select.add_item("低")
+	_density_select.custom_minimum_size.x = 180
+	density_row.add_child(_density_select)
+	_density_select.item_selected.connect(func(index: int) -> void:
+		Presentation.low_effects = index == 1
+		Presentation.save_preferences())

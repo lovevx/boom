@@ -26,6 +26,9 @@ func _make_panel_style() -> StyleBoxFlat:
 
 
 func _ready() -> void:
+	if not OS.is_debug_build():
+		queue_free()
+		return
 	process_mode = Node.PROCESS_MODE_ALWAYS   # 技能树打开时游戏暂停，测试面板仍可点击使用
 	layer = 90   # 最高 UI 层级：盖过技能树页面(15)/新手引导(25)，仅低于过场渐隐(100)
 	_build_ui()

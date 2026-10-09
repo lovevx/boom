@@ -18,8 +18,8 @@ const _DN_SCENE := preload("res://scenes/DamageNumber.tscn")
 const _DUST_FX := preload("res://scripts/DustFx.gd")   # 尘土 GIF 特效（爆炸扬尘）
 
 # ---- 炮弹美术：一颗圆润实心炮弹（蓝灰球体）----
-const BOMB_ART := preload("res://assets/ui/炮弹图.png")
-const BOMB_ART_SIZE := 204.0       # 素材边长（px）
+const BOMB_ART := preload("res://assets/presentation/icons/bomb.png")
+const BOMB_ART_SIZE := 24.0       # 素材边长（px）
 const BOMB_SIZE := 26.0            # 炮弹在游戏中的世界边长（px，与原 26px 程序球一致）
 
 var _velocity := Vector2.ZERO
@@ -131,18 +131,10 @@ func _spawn_explosion_dust() -> void:
 
 # 用一个大圆缩放 + 淡出表现爆炸光球（与 Bomb.gd 一致的手法）。
 func _play_explosion_fx() -> void:
-	var fx := Polygon2D.new()
-	fx.polygon = _circle_points(radius)
-	fx.color = Color(1.0, 0.68, 0.22, 0.9)
+	var fx := preload("res://scripts/BlastFx.gd").new()
 	fx.position = global_position
-	get_parent().add_child(fx)
-	fx.scale = Vector2(0.12, 0.12)
-	# 关键：Tween 必须绑定到 fx 本身，而不是炸弹。炸弹 _explode 里会立即 queue_free，
-	# 若绑定到炸弹，Tween 会被一并销毁，淡出手动画与 queue_free 永不执行，导致特效堆积。
-	var tween := fx.create_tween()
-	tween.tween_property(fx, "scale", Vector2.ONE, 0.16)
-	tween.parallel().tween_property(fx, "modulate:a", 0.0, 0.4)
-	tween.tween_callback(fx.queue_free)
+	fx.blast_radius = radius
+	get_tree().current_scene.add_child(fx)
 
 
 func _circle_points(r: float) -> PackedVector2Array:
@@ -163,10 +155,10 @@ func _damage_blocks() -> void:
 	q.shape = shape
 	q.transform = Transform2D(0.0, global_position)
 	q.collide_with_bodies = true
-	var base_dmg: float = damage * UpgradeManager.hammer_damage
+	var base_dmg: float = damage
 	var seen := {}
 	var destroyed_pos: Array[Vector2] = []   # 本次被击碎的方块位置（供连锁伤害追加）
-	for hit in space.intersect_shape(q):
+	for hit in space.intersect_shape(q, 512):
 		var hit_body: Object = hit.get("collider")
 		if not (hit_body is BuildingBlock) or seen.has(hit_body):
 			continue
@@ -206,7 +198,7 @@ func _apply_chain(dmg: float, center: Vector2) -> void:
 	q.shape = shape
 	q.transform = Transform2D(0.0, center)
 	q.collide_with_bodies = true
-	for hit in space.intersect_shape(q):
+	for hit in space.intersect_shape(q, 512):
 		var body: Object = hit.get("collider")
 		if not (body is BuildingBlock):
 			continue

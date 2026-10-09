@@ -26,19 +26,19 @@ const TIERS := [
 		"floor": { "material": "石灰石",   "hp": 7.0,  "gold": 2,  "color": Color(0.78, 0.76, 0.71) },
 	},
 	{
-		"threshold": 40,
+		"threshold": 100,
 		"wall": { "material": "大理石",   "hp": 7.0,  "gold": 3,  "color": Color(0.90, 0.90, 0.93) },
 		"window": { "material": "浮法玻璃", "hp": 3.0,  "gold": 2,  "color": Color(0.72, 0.88, 0.97) },
 		"floor": { "material": "混凝土",   "hp": 9.0,  "gold": 3,  "color": Color(0.62, 0.63, 0.66) },
 	},
 	{
-		"threshold": 120,
+		"threshold": 450,
 		"wall": { "material": "红砖",     "hp": 9.0,  "gold": 4,  "color": Color(0.70, 0.42, 0.34) },
 		"window": { "material": "钢化玻璃", "hp": 5.0,  "gold": 3,  "color": Color(0.55, 0.78, 0.95) },
 		"floor": { "material": "瓷砖",     "hp": 12.0, "gold": 5,  "color": Color(0.80, 0.81, 0.84) },
 	},
 	{
-		"threshold": 300,
+		"threshold": 1400,
 		"wall": { "material": "花岗岩",   "hp": 12.0, "gold": 5,  "color": Color(0.60, 0.58, 0.56) },
 		"window": { "material": "钢化玻璃", "hp": 5.0,  "gold": 4,  "color": Color(0.55, 0.78, 0.95) },
 		"floor": { "material": "淬火高强钢", "hp": 16.0, "gold": 7,  "color": Color(0.55, 0.58, 0.64) },
@@ -67,17 +67,17 @@ var _block_texture: Texture2D   # 兜底白色渐变（找不到贴图时的占�
 # 材质名 → 美术贴图文件名（assets/ui/*.png，不带扩展名）。
 # 挡位表里的材质（石膏板/浮法玻璃/石灰石…）在此映射到真实美术素材。
 const MATERIAL_FILE := {
-	"石膏板":   "石膏石",
-	"普通玻璃": "普通玻璃",
-	"浮法玻璃": "浮法玻璃",
-	"石灰石":   "石灰石",
-	"大理石":   "大理石",
-	"混凝土":   "混凝土",
-	"红砖":     "红砖",
-	"钢化玻璃": "钢化玻璃",
-	"瓷砖":     "瓷砖",
-	"花岗岩":   "花岗岩",
-	"淬火高强钢": "金属",
+	"石膏板":   "plaster",
+	"普通玻璃": "glass",
+	"浮法玻璃": "float_glass",
+	"石灰石":   "limestone",
+	"大理石":   "marble",
+	"混凝土":   "concrete",
+	"红砖":     "brick",
+	"钢化玻璃": "tempered_glass",
+	"瓷砖":     "ceramic",
+	"花岗岩":   "granite",
+	"淬火高强钢": "steel",
 }
 
 var _texture_cache: Dictionary = {}   # 材质名 → Texture2D（避免每条方块重复 Load）
@@ -179,7 +179,7 @@ void fragment() {
 		// 由种子派生两个不相关的随机数：r0→条数、r1→整组朝向偏转（r0+TAU 把一个裂纹组整体转个方向）
 		float r0 = fract(sin(seed) * 43758.5453123);
 		float r1 = fract(sin(seed * 2.0) * 43758.5453123);
-		vec2 v = UV - origin;
+		vec2 v = (floor(UV * 20.0) + vec2(0.5)) / 20.0 - origin;
 		float rad = length(v);
 		// —— 主裂缝：从受击点辐射、每块条数与朝向随机 ——
 		float a0 = atan(v.y, v.x);
@@ -236,6 +236,7 @@ func _crack_shader_res() -> Shader:
 # 按列托管：_cols[col] 为自上而下（index 0 = 该列当前顶层）的方块数组。
 # 任意列方块数始终补足到 VISIBLE_LAYERS，楼体整体保持满高。
 var _cols: Array = []            # Array[Array[BuildingBlock]]
+var _pending_columns: Dictionary = {}
 
 
 func _ready() -> void:
@@ -286,6 +287,7 @@ func _generate_in_batches() -> void:
 # 期间若再次 reset，_generation_id 代次守卫会让旧协程中止，不会叠加出新楼。
 # 释放前统一用 is_instance_valid 校验，避免访问已 free 实例。
 func reset() -> void:
+	_pending_columns.clear()
 	_falling_blocks = 0   # 旧塔直接释放（下落中不会落定回退），重新计数
 	for child in get_children():
 		if is_instance_valid(child):
@@ -340,8 +342,8 @@ func _spawn_block(col: int, level: int, type: String, is_floor: bool) -> Buildin
 	if photo != null:
 		sprite.texture = photo
 		_apply_block_render(sprite)
-		sprite.modulate = _brightness_modulate(base, block_hp, jitter)
-		sprite.material = _get_material_effect(entry.material)   # 按材质类别加质感（玻璃/金属/石材）
+		sprite.modulate = Color(jitter, jitter, jitter)
+		sprite.material = null   # 按材质类别加质感（玻璃/金属/石材）
 	else:
 		sprite.texture = _get_block_texture()
 		sprite.modulate = _tint_by_hp(base, block_hp, jitter)
@@ -414,12 +416,20 @@ func _on_block_shattered(block: BuildingBlock) -> void:
 	# 注意：此回调可能在物理回调栈（炸弹爆炸/连锁伤害的 intersect_shape）中同步触发，
 	# 压实与补层会实例化新刚体并改冻结/速度，在 flushing queries 阶段会报
 	# "body_set_shape_disabled" 错误，故推迟到物理步结束后再执行重建。
-	_deferred_rebuild_column(c)
+	if not _pending_columns.has(c):
+		_pending_columns[c] = _generation_id
+		_deferred_rebuild_column.call_deferred(c, _generation_id)
 	_queue_chain_feedback()   # 同瞬摧毁计数：聚合多种碎裂来决定 档2/档3 反馈（由手感中枢裁决）
 
 
 # 推迟到物理步结束执行列重建（压实 + 补层），避免在物理回调/查询刷新期间改刚体状态。
-func _deferred_rebuild_column(c: int) -> void:
+func _deferred_rebuild_column(c: int, generation: int = -1) -> void:
+	if generation >= 0:
+		if int(_pending_columns.get(c, -1)) != generation:
+			return
+		_pending_columns.erase(c)
+		if generation != _generation_id:
+			return
 	if not is_inside_tree():
 		return
 	_compact_column(c)
@@ -508,6 +518,9 @@ func _on_block_settled(c: int) -> void:
 # 当该列没有任何方块仍在"下落"时，把该列在楼顶补满（无限塔）。
 func _maybe_refill(c: int) -> void:
 	if c < 0 or c >= _cols.size():
+		return
+	# 同帧新破坏的压实尚未执行：落定回调不能抢先把下方空洞原地补回。
+	if _pending_columns.has(c):
 		return
 	# 清理该列可能已失效的引用
 	for i in range(_cols[c].size() - 1, -1, -1):
@@ -600,7 +613,7 @@ func _get_material_texture(material: String) -> Texture2D:
 	var file: String = MATERIAL_FILE.get(material, "")
 	var tex: Texture2D = null
 	if not file.is_empty():
-		tex = load("res://assets/ui/%s.png" % file) as Texture2D
+		tex = load("res://assets/presentation/materials/%s.png" % file) as Texture2D
 	_texture_cache[material] = tex
 	return tex
 

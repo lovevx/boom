@@ -57,6 +57,11 @@ func _ready() -> void:
 
 # 入口：抓屏 → 生成碎块 → 延时切场景。忙碌时忽略重复调用（防连点）。
 func transition_to(target_scene: String) -> void:
+	GameFeel.reset()
+	if Presentation.reduced_motion:
+		get_tree().paused = false
+		get_tree().change_scene_to_file(target_scene)
+		return
 	if _busy:
 		return
 	_busy = true
@@ -67,7 +72,7 @@ func transition_to(target_scene: String) -> void:
 	SoundManager.play("scene_transition")
 	_capture_and_spawn()
 	_add_input_blocker()
-	_shake_time = shake_duration  # 生成瞬间震屏
+	_shake_time = 0.0  # 生成瞬间震屏
 	set_process(true)
 
 

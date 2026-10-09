@@ -21,3 +21,9 @@ Desktop.ini
 .idea/
 .vscode/
 *.code-workspace
+
+# Generated caches and uncompressed capture intermediates
+__pycache__/
+*.pyc
+/artifacts/*.avi
+/artifacts/**/*.import

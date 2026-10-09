@@ -15,7 +15,11 @@ static var _count: int = 0
 
 
 func _ready() -> void:
+	if not Presentation.admit(self, "number"):
+		queue_free()
+		return
 	add_to_group(&"in_game_entity")   # 归入"场上临时实体"组，重置时统一清理
+	_label.add_theme_font_override("font", Presentation.NUMBERS)
 	_configure_label()
 	_layout_draw()
 	_play_animation()
@@ -69,9 +73,9 @@ func _claim_stagger_offset() -> float:
 # 动画：弹出缩放 + 上飘 + 末尾淡出，全部使用 Tween。
 func _play_animation() -> void:
 	var dur: float = 0.4 if is_lethal else 0.6   # 致命更快
-	var float_dist: float = randf_range(30.0, 50.0)
+	var float_dist: float = (10.0 if Presentation.reduced_motion else randf_range(30.0, 50.0))
 	var fade_start: float = dur - 0.2            # 最后 0.2 秒开始淡出
-	scale = Vector2(1.3, 1.3)                    # 生成瞬间放大，弹回 1.0
+	scale = Vector2.ONE if Presentation.reduced_motion else Vector2(1.15, 1.15)                    # 生成瞬间放大，弹回 1.0
 
 	var tween := create_tween()
 	tween.set_parallel(true)

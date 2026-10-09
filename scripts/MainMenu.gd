@@ -48,6 +48,7 @@ func _ready() -> void:
 	$SettingsButton.mouse_entered.connect(_on_ui_hover)
 	_close_btn.mouse_entered.connect(_on_ui_hover)
 	_build_stats_button()
+	_build_presentation_menu()
 
 
 # 通用悬停提示音。
@@ -170,11 +171,9 @@ func _has_save(slot: int) -> bool:
 
 # 槽位卡片选中态样式：边框加亮 + 底色提亮。
 func _apply_selected_style(btn: Button, selected: bool) -> void:
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.26, 0.32, 0.44, 0.97) if selected else Color(0.2, 0.24, 0.33, 0.94)
-	sb.set_corner_radius_all(10)
-	sb.set_border_width_all(2)
-	sb.border_color = Color(1, 0.85, 0.4, 1) if selected else Color(1, 0.7, 0.35, 0.9)
+	var sb := Presentation.THEME.get_stylebox("normal","Button").duplicate() as StyleBoxFlat
+	sb.bg_color = Presentation.PROFILE.panel_light if selected else Presentation.PROFILE.panel
+	sb.border_color = Presentation.PROFILE.gold if selected else Color("#4d7899")
 	var sb_h := sb.duplicate()
 	sb_h.bg_color = Color(0.3, 0.35, 0.46, 0.96)
 	btn.add_theme_stylebox_override("normal", sb)
@@ -268,6 +267,7 @@ func _on_quit_pressed() -> void:
 func _build_stats_button() -> void:
 	var btn := Button.new()
 	btn.position = Vector2(48, 950)
+	btn.name = "CareerButton"
 	btn.size = Vector2(200, 54)
 	btn.text = "生涯统计"
 	btn.add_theme_font_size_override("font_size", 22)
@@ -290,3 +290,64 @@ func _build_stats_button() -> void:
 func _on_stats_pressed() -> void:
 	SoundManager.play("ui_click")
 	$StatsPanel.call("open")
+
+var _brand_root: Control
+
+func _build_presentation_menu() -> void:
+	$Bg.texture = preload("res://assets/presentation/yard.png")
+	$Bg.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	$Bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	$MenuArt.hide()
+	_brand_root = Control.new()
+	_brand_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_brand_root.size = Vector2(1920,1080)
+	add_child(_brand_root)
+	var panel := Panel.new()
+	panel.position = Vector2(752,380)
+	panel.size = Vector2(416,414)
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_theme_stylebox_override("panel", Presentation.THEME.get_stylebox("panel","PanelContainer"))
+	_brand_root.add_child(panel)
+	var logo := TextureRect.new()
+	logo.texture = preload("res://assets/presentation/logo.png")
+	logo.position = Vector2(540,160)
+	logo.size = Vector2(840,200)
+	logo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	logo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	logo.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_brand_root.add_child(logo)
+	var caption := Label.new()
+	caption.text = "砸碎 · 赚取 · 升级 · 自动轰炸"
+	caption.position = Vector2(600,330)
+	caption.size = Vector2(720,50)
+	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	caption.add_theme_font_size_override("font_size",26)
+	caption.add_theme_color_override("font_outline_color",Presentation.PROFILE.ink)
+	caption.add_theme_constant_override("outline_size",6)
+	_brand_root.add_child(caption)
+	for index in 4:
+		var button: Button = get_node(["StartButton","HowButton","SettingsButton","QuitButton"][index])
+		button.reparent(_brand_root, false)
+		button.position = Vector2(792,414 + index*86)
+		button.size = Vector2(336,66)
+		button.add_theme_font_size_override("font_size",28 if index==0 else 24)
+		if index == 0:
+			button.theme_type_variation = &"PrimaryButton"
+		button.icon = Presentation.icon(["hammer","building","gear","lock"][index])
+		button.add_theme_constant_override("icon_max_width",32)
+	_brand_root.move_to_front()
+	# Modal overlays must be above the new brand root.
+	for name in ["SlotMenu","HowTo","SettingsPanel","StatsPanel"]:
+		get_node(name).move_to_front()
+	get_viewport().size_changed.connect(_layout_presentation_menu)
+	_layout_presentation_menu()
+
+func _layout_presentation_menu() -> void:
+	var viewport := get_viewport().get_visible_rect().size
+	_brand_root.position.x = (viewport.x-1920)/2.0
+	for control in _slot_menu.get_children():
+		if control is Control and not (control is ColorRect):
+			if not control.has_meta("design_x"):
+				control.set_meta("design_x",control.position.x)
+			control.position.x = float(control.get_meta("design_x")) + (viewport.x-1920)/2.0
+	$CareerButton.position.y = viewport.y - 116

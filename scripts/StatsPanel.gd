@@ -18,7 +18,7 @@ var _gold_label: Label
 
 func open() -> void:
 	_refresh()
-	show()
+	Presentation.dialog_enter(self)
 
 
 func close() -> void:
@@ -35,6 +35,11 @@ func _refresh() -> void:
 	_blocks_label.text = "击破方块：%d 块" % GoldManager.stats_blocks_destroyed
 	_gold_label.text = "总获取金币：%d" % GoldManager.stats_gold_earned
 
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	if visible and event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		close()
+		get_viewport().set_input_as_handled()
 
 func _build() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -64,6 +69,7 @@ func _build() -> void:
 	sb.corner_radius_bottom_left = 18; sb.corner_radius_bottom_right = 18
 	bg.add_theme_stylebox_override("panel", sb)
 	root.add_child(bg)
+	Presentation.bind_dialog.call_deferred(root,panel_size)
 
 	var vbox := VBoxContainer.new()
 	vbox.set_anchors_preset(Control.PRESET_FULL_RECT)

@@ -35,23 +35,26 @@ var visual_layer: Node2D     # P2：视觉层容器（材质 sprite + 裂纹）�
 var _rot_tween: Tween        # P2：下落视觉摇摆动画句柄（独立于 _fall_tween，不同属性并行不互相覆盖）
 
 var _hit_tween: Tween       # 受击抖动动画（仅静止支撑中的方块用）
+var _shattered := false     # 同帧多次命中只允许一次碎裂/奖励/列更新
 var _shatter_origin: Vector2 = Vector2.ZERO   # 最近一次命中时的来源点，破碎以它为中心
 
 
 # 被命中时调用：仅在静止支撑时沿命中方向瞬时抖动，下落中则忽略。
 func launch(direction: Vector2, _impulse_force: float) -> void:
-	if _falling:
+	if _falling or _shattered:
 		return
 	var dir := direction
 	if dir == Vector2.ZERO:
 		dir = Vector2.RIGHT
 	if _hit_tween and _hit_tween.is_valid():
 		_hit_tween.kill()
-	var base: Vector2 = global_position
-	_hit_tween = create_tween()
-	_hit_tween.tween_property(self, "global_position", base + dir.normalized() * 7.0, 0.04) \
-		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	_hit_tween.tween_property(self, "global_position", base, 0.09)
+	# 受击只移动外观，避免回弹与槽位下落同时写刚体位置、把已落定的块拉回旧格。
+	if is_instance_valid(visual_layer):
+		visual_layer.position = Vector2.ZERO
+		_hit_tween = create_tween()
+		_hit_tween.tween_property(visual_layer, "position", dir.normalized() * 7.0, 0.04) \
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		_hit_tween.tween_property(visual_layer, "position", Vector2.ZERO, 0.09)
 	# 档1 受击视觉（白闪 + 即时裂纹）：仅"存活且非下落中"触发。
 	# 本次命中若致死（hp<=0，take_damage 已在前面扣过）则跳过档1，交给档2 的碎裂反馈。
 	if hp > 0.0:
@@ -113,12 +116,15 @@ func _spawn_hit_feedback() -> void:
 # 白闪：一块盖住方块的白色 Polygon，快速淡出。
 func _spawn_white_flash(scene: Node) -> void:
 	var flash := Polygon2D.new()
+	if not Presentation.admit(flash, "hit"):
+		flash.free()
+		return
 	flash.polygon = PackedVector2Array([
 		Vector2(-SLOT / 2.0, -SLOT / 2.0), Vector2(SLOT / 2.0, -SLOT / 2.0),
 		Vector2(SLOT / 2.0, SLOT / 2.0), Vector2(-SLOT / 2.0, SLOT / 2.0),
 	])
 	flash.position = global_position
-	flash.color = Color(1.0, 1.0, 1.0, 0.9)
+	flash.color = Color(1.0, 0.95, 0.78, 0.45)
 	flash.z_index = 40
 	flash.add_to_group(&"in_game_entity")
 	scene.add_child(flash)
@@ -133,6 +139,9 @@ func _spawn_white_flash(scene: Node) -> void:
 # 命中点即 _shatter_origin（launch 前已由调用方 register_hit_origin 写入）。
 func _spawn_hit_cracks(scene: Node) -> void:
 	var root := Node2D.new()
+	if not Presentation.admit(root, "hit"):
+		root.free()
+		return
 	root.position = _shatter_origin   # 裂纹以命中点为根
 	root.z_index = 40
 	root.add_to_group(&"in_game_entity")
@@ -144,7 +153,7 @@ func _spawn_hit_cracks(scene: Node) -> void:
 	for i in range(randi_range(2, 3)):
 		var line := Line2D.new()
 		line.width = 2.0
-		line.antialiased = true
+		line.antialiased = false
 		line.default_color = Color(0.12, 0.12, 0.12, 0.85)
 		var a := inward_ang + randf_range(-0.9, 0.9)
 		var len := randf_range(SLOT * 0.22, SLOT * 0.5)
@@ -228,6 +237,8 @@ static func _emit_batch_dust(scene: Node) -> void:
 
 # 受到来自 BOMB 的爆炸伤害。
 func take_damage(damage: float) -> void:
+	if _shattered:
+		return
 	hp -= damage
 	if hp <= 0.0:
 		_shatter()
@@ -244,6 +255,11 @@ func take_damage(damage: float) -> void:
 func drop_to(target_level: int) -> void:
 	if target_level <= level:
 		return
+	if _hit_tween and _hit_tween.is_valid():
+		_hit_tween.kill()
+	_hit_tween = null
+	if is_instance_valid(visual_layer):
+		visual_layer.position = Vector2.ZERO
 	# 重叠下移：若上一次下落还没播完，则从当前位置接着落到新目标，不打断。
 	if _fall_tween and _fall_tween.is_valid():
 		_fall_tween.kill()
@@ -272,6 +288,10 @@ func drop_to(target_level: int) -> void:
 # P2：下落姿态。整体时长内视觉层先歪向一个随机微调角，落定前摆回 0°。
 # 只旋转 visual_layer（外观），block.position.y / freeze / 碰撞完全不受影响，落定量级确定不变。
 func _start_fall_sway(total: float) -> void:
+	if Presentation.reduced_motion:
+		if is_instance_valid(visual_layer):
+			visual_layer.rotation = 0.0
+		return
 	if _rot_tween and _rot_tween.is_valid():
 		_rot_tween.kill()
 	if visual_layer == null or not is_instance_valid(visual_layer):
@@ -327,8 +347,11 @@ func _notify_healthbar() -> void:
 
 # 碎裂（破碎效果）：在命中点播放 PixelExplosion（烟雾+材质碎屑+冲击环），然后移除自身。
 func _shatter() -> void:
+	if _shattered:
+		return
+	_shattered = true
 	shattered.emit()   # 通知所属列：本块已被摧毁，其上支撑需级联下落
-	SoundManager.play("shatter_glass" if is_glass else "shatter_stone")   # 玻璃块放玻璃碎声，石材/金属/其余放石头碎声
+	SoundManager.play("shatter_glass" if is_glass else ("shatter_metal" if debris_texture and "steel" in debris_texture.resource_path else "shatter_stone"))   # 玻璃块放玻璃碎声，石材/金属/其余放石头碎声
 	GoldManager.register_destroyed()   # 每毁一块 → 累计摧毁数 +1（驱动材质挡位）
 	_spawn_pixel_explosion()   # 用 PixelExplosion 提供碎裂特效（材质碎屑四散）
 	_spawn_gold()
@@ -358,27 +381,23 @@ func _spawn_gold() -> void:
 	var amount: int = roundi(base * UpgradeManager.coin_multiplier)
 	GoldManager.add_gold(amount)
 	SoundManager.play("coin")
-	var popup_scene: PackedScene = preload("res://scenes/GoldPopup.tscn")
-	var popup: Node2D = popup_scene.instantiate()
-	popup.amount = amount
-	popup.position = _shatter_origin
-	get_tree().current_scene.add_child(popup)
+	Presentation.gold_popup(_shatter_origin, amount)
 	_spawn_coin_flight(amount)   # 额外生成数枚金币飞向左上角金币UI
 
 
 # 砸碎后生成数枚金币，从破坏点沿抛物线飞向左上角的金币UI徽章，边飞边缩小。
 # 金币数量随产出的大小浮动但限制在合适区间，避免超大增量刷屏。
 func _spawn_coin_flight(amount: int) -> void:
-	if amount <= 0:
+	if amount <= 0 or Presentation.reduced_motion:
 		return
 	# 目标：金币UI徽章中心（GoldHUD 是 CanvasLayer，其徽章屏幕坐标≈世界坐标）
 	var hud: CanvasLayer = get_tree().current_scene.get_node_or_null("GoldHUD")
 	if hud == null or not hud.has_node("GoldBar/CoinHBox"):
 		return
 	var bar: Control = hud.get_node("GoldBar/CoinHBox")
-	var target: Vector2 = bar.get_global_transform_with_canvas().origin + bar.size / 2.0
+	var target: Vector2 = get_viewport().get_canvas_transform().affine_inverse() * (bar.get_global_transform_with_canvas().origin + Vector2(32, 32))
 	var coin_scene: PackedScene = preload("res://scenes/CoinFly.tscn")
-	var coin_count := clampi(amount, 3, 9)
+	var coin_count := clampi(amount, 1, 3)
 	for i in range(coin_count):
 		var coin: Node2D = coin_scene.instantiate()
 		# 出生点在破坏点周围散布，落点小幅散射到徽章附近，制造凌乱飞舞感

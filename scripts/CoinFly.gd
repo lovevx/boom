@@ -15,6 +15,9 @@ var _ctrl: Vector2
 
 
 func _ready() -> void:
+	if not Presentation.admit(self, "coin"):
+		queue_free()
+		return
 	add_to_group(&"in_game_entity")   # 归入"场上临时实体"组，重置时统一清理
 	_start = position
 	# 弧线控制点：取起点与终点连线中点的上方，制造抛物线；spread 制造高低差异
@@ -39,7 +42,6 @@ func _advance(t: float) -> void:
 
 
 func _draw() -> void:
-	# 金币：金色圆底 + 暗色描边
-	var r := 8.0
-	draw_circle(Vector2.ZERO, r, Color(1.0, 0.82, 0.25))
-	draw_arc(Vector2.ZERO, r, 0.0, TAU, 16, Color(0.72, 0.5, 0.08), 2.0)
+	draw_texture_rect(Presentation.icon("coin"), Rect2(-9,-9,18,18), false)
+
+

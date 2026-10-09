@@ -69,6 +69,7 @@ func _ready() -> void:
 		queue_free()
 		return
 	_screen = get_viewport().get_visible_rect().size
+	get_viewport().size_changed.connect(_on_viewport_resized)
 	_build_ui()
 	_resolve_nodes()
 	_connect_signals()
@@ -186,7 +187,7 @@ func _update_arrow(delta: float) -> void:
 		var t := 1.0 - exp(-10.0 * delta)   # 阻尼系数：越小越慢越"顺滑"
 		_arrow_cur = _arrow_cur.lerp(pos, t)
 	_arrow.global_position = _arrow_cur
-	var breathe := 1.0 + 0.10 * sin(_pulse)
+	var breathe := 1.0 if Presentation.reduced_motion else 1.0 + 0.06 * sin(_pulse)
 	_arrow.scale = Vector2(breathe, breathe)
 	_arrow.modulate.a = 0.85
 
@@ -199,7 +200,7 @@ func _update_glow() -> void:
 	elif _step == Step.OPEN_TREE:
 		# 高亮技能树按钮：沿按钮外圈画呼吸描边
 		_glow.visible = true
-		_glow.global_position = TREE_BTN_POS
+		_glow.global_position = _tree_button_position()
 		_glow.modulate.a = 0.7 + 0.3 * sin(_pulse)
 	else:
 		_glow.visible = false
@@ -211,7 +212,7 @@ func _arrow_target() -> Variant:
 		Step.HIT:
 			return _nearest_block_pos()
 		Step.OPEN_TREE:
-			return TREE_BTN_POS
+			return _tree_button_position()
 		Step.ADD_DAMAGE:
 			# 悬停可看效果、点击节点直接加点 → 箭头始终指向该节点；加完之后即结束
 			return _damage_node_pos() if not _damage_added else null
@@ -242,7 +243,7 @@ func _nearest_block_pos() -> Variant:
 		var c: Object = hit.get("collider")
 		if is_instance_valid(c) and c.get_script() != null \
 				and c.get_script().resource_path.ends_with("BuildingBlock.gd"):
-			return c.global_position
+			return c.get_global_transform_with_canvas().origin
 	return null
 
 
@@ -383,3 +384,15 @@ static func reset_and_restart() -> void:
 	o.layer = 25
 	o.set_script(load("res://scripts/Onboarding.gd"))
 	scene.add_child(o)
+
+
+func _tree_button_position() -> Vector2:
+	var button := get_tree().current_scene.get_node_or_null("GoldHUD/GoldBar/SkillTreeButton") as Control
+	return button.get_global_rect().get_center() if button else TREE_BTN_POS
+
+func _on_viewport_resized() -> void:
+	_screen = get_viewport().get_visible_rect().size
+	if _skip_btn:
+		_skip_btn.position = Vector2(_screen.x-200,158)
+	if _bar:
+		_position_bar(_step == Step.ADD_DAMAGE)

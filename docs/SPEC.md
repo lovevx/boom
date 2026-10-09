@@ -1,3 +1,5 @@
+> 2026-10-09 数值版本更新：技能费用、转生收益、永久节点与前置关系以 [Numeric_Balance.md](Numeric_Balance.md)、[SkillTree.md](SkillTree.md)、[Reincarnation.md](Reincarnation.md) 为准；本文未同步的旧数值属于历史规格。
+
 # SPEC.md —— 规格约束
 
 > 写给 AI 看的硬性规格。一切"AI 不能擅自改"的东西都放在这里。

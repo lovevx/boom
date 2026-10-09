@@ -1,0 +1,70 @@
+{
+	"checks": [
+		{
+			"detail": null,
+			"name": "single_break_drops_and_refills",
+			"passed": true
+		},
+		{
+			"detail": {
+				"level": 20,
+				"position": "(200.0, 800.0)"
+			},
+			"name": "hit_recoil_cannot_undo_fall",
+			"passed": true
+		},
+		{
+			"detail": "(200.0, 760.0)",
+			"name": "repeated_hits_cannot_move_support",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "one_shatter_per_block",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "duplicate_hits_preserve_grid_and_fall_count",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "pending_compact_prevents_bottom_refill",
+			"passed": true
+		},
+		{
+			"detail": {
+				"level": 2,
+				"position": "(200.0, 80.0)"
+			},
+			"name": "break_on_last_landing_drops_again",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "multi_break_retargets_active_falls",
+			"passed": true
+		},
+		{
+			"detail": {
+				"destroyed": 117,
+				"grid": {}
+			},
+			"name": "bomb_and_chain_settle_to_unique_slots",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "range_hammer_with_recoil_and_slowmo",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "rapid_breaks_across_columns_with_motion",
+			"passed": true
+		}
+	],
+	"failed": 0,
+	"user_dir": "C:/Users/31992/AppData/Roaming/Godot/app_userdata/BoomameCollapseValidation"
+}

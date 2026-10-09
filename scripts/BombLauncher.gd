@@ -25,10 +25,10 @@ const FIRST_SHOT_DELAY := 0.8             # 刚激活时首次开火的延迟（
 const FRAME_PATH := "res://assets/launcher/launcher_%03d.png"
 const FRAME_START := 6
 const FRAME_END := 38
-const SPRITE_SCALE := 0.46                 # 大炮最终缩放（240px → 约 110px 高，与 40px 方块匹配）
-const ART_HALF := 120.0                    # 240px 帧的半边长（Sprite 居中，local 以帧中心为原点）
-const MUZZLE_XY := Vector2(183.0, 98.0)    # 炮口（弹丸发射口）在某帧内的像素坐标
-const FEET_BOTTOM_Y := 239.0               # 大炮底座底部像素行（着地点）
+const SPRITE_SCALE := 2.0                 # 大炮最终缩放（240px → 约 110px 高，与 40px 方块匹配）
+const ART_HALF := 32.0                    # 240px 帧的半边长（Sprite 居中，local 以帧中心为原点）
+const MUZZLE_XY := Vector2(27.0, 10.0)    # 炮口（弹丸发射口）在某帧内的像素坐标
+const FEET_BOTTOM_Y := 62.0               # 大炮底座底部像素行（着地点）
 const BUILDING_CENTER_X := 960.0           # 建筑水平中心，用于决定炮台是否镜像朝左
 const FEET_WORLD_Y := 1000.0               # 炮台底座着地的目标世界 y（地面顶面）
 const SPAWN_Y := 985.0                     # LauncherManager 出生点标记的世界 y（Main.tscn 固定）
@@ -55,7 +55,7 @@ func _ready() -> void:
 	_setup_sprite()
 	_setup_facing()
 	_ground_position()
-	_timer.one_shot = false             # 循环冷却
+	_timer.one_shot = true             # 循环冷却
 	_timer.timeout.connect(_on_cooldown_timeout)
 
 
@@ -63,30 +63,17 @@ func _ready() -> void:
 # idle —— 仅第 IDLE_FRAME_PNG 帧（静止待机，不循环）；
 # attack —— 整段 006~038，一次性播放，出膛帧由 FIRE_FRAME_INDEX 决定。
 func _setup_sprite() -> void:
-	var frames := SpriteFrames.new()
-	frames.add_animation("idle")
-	frames.add_animation("attack")
-	for i in range(FRAME_START, FRAME_END + 1):
-		var img := Image.load_from_file(ProjectSettings.globalize_path(FRAME_PATH % i))
-		var tex := ImageTexture.create_from_image(img)
-		if i == IDLE_FRAME_PNG:
-			frames.add_frame("idle", tex)
-		frames.add_frame("attack", tex)
-	frames.set_animation_speed("idle", 1.0)
-	frames.set_animation_speed("attack", ATK_FPS)
-	frames.set_animation_loop("idle", false)
-	frames.set_animation_loop("attack", false)
-	_turret.sprite_frames = frames
+	_turret.sprite_frames = preload("res://assets/presentation/launcher_frames.tres")
+	_turret.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_turret.play("idle")
 
 
-# 依据炮台相对建筑中心的位置决定镜像：左侧朝右、右侧朝左。
 func _setup_facing() -> void:
 	_dir = -1.0 if global_position.x > BUILDING_CENTER_X else 1.0
-	_turret.scale = Vector2(SPRITE_SCALE * _dir, SPRITE_SCALE)
+	_turret.scale = Vector2(-SPRITE_SCALE * _dir, SPRITE_SCALE)
 	# 炮口 local = (帧内坐标 - 帧中心) × 缩放，再乘以朝向（镜像后炮口转到镜像侧）
 	var mz_local := (MUZZLE_XY - Vector2(ART_HALF, ART_HALF)) * SPRITE_SCALE
-	_muzzle.position = Vector2(mz_local.x * _dir, mz_local.y)
+	_muzzle.position = Vector2(-mz_local.x * _dir, mz_local.y)
 
 
 # 上移炮台，使其底座底部落到地面（FEET_WORLD_Y）。
@@ -99,6 +86,9 @@ func _ground_position() -> void:
 func play_deploy() -> void:
 	_active = true
 	SoundManager.play("launcher_deploy")
+	if Presentation.reduced_motion:
+		_ensure_timer_started()
+		return
 	position.y += 42.0          # 从"地下"起点
 	scale = Vector2(0.12, 0.12)
 	var tween := create_tween()
@@ -137,7 +127,7 @@ func _on_cooldown_timeout() -> void:
 	if not _active:
 		return
 	_start_attack()
-	_timer.wait_time = UpgradeManager.get_bomb_launcher_cooldown()
+	_timer.start(UpgradeManager.get_bomb_launcher_cooldown())
 
 
 # 挑一个建筑区域内的随机点作为目标。
@@ -173,6 +163,10 @@ func _start_attack() -> void:
 	if _turret.animation_finished.is_connected(_on_attack_finished):
 		_turret.animation_finished.disconnect(_on_attack_finished)
 	_turret.animation_finished.connect(_on_attack_finished, CONNECT_ONE_SHOT)
+	# 动画随射速缩短，避免冷却已到但上一段动画挡住发射。
+	var frames := _turret.sprite_frames.get_frame_count("attack")
+	var duration := frames / _turret.sprite_frames.get_animation_speed("attack")
+	_turret.speed_scale = maxf(1.0, duration / (UpgradeManager.get_bomb_launcher_cooldown() * 0.90))
 	_turret.play("attack")
 
 
@@ -192,8 +186,10 @@ func _on_attack_frame() -> void:
 # 攻击动画播完：复位到待机静帧。
 func _on_attack_finished() -> void:
 	_firing = false
-	_turret.frame_changed.disconnect(_on_attack_frame)
+	if _turret.frame_changed.is_connected(_on_attack_frame):
+		_turret.frame_changed.disconnect(_on_attack_frame)
 	_turret.stop()
+	_turret.speed_scale = 1.0
 	_turret.play("idle")
 
 
@@ -219,8 +215,8 @@ func _spawn_projectile(target: Vector2) -> void:
 	proj.position = _muzzle.global_position
 	proj.bomb_gravity = gravity
 	# 炮弹伤害 = 升级表值 ×(1+弹药强化%转生乘和) + 炮塔基础伤害永久加值；半径 = 范围表值 ×(1+爆裂范围%转生乘和)。
-	proj.damage = UpgradeManager.get_bomb_launcher_damage() * ReincarnationManager.get_bomb_damage_mult() \
-			+ ReincarnationManager.get_bomb_base_damage_bonus()
+	proj.damage = (UpgradeManager.get_bomb_launcher_damage() + ReincarnationManager.get_bomb_base_damage_bonus()) \
+			* ReincarnationManager.get_bomb_damage_mult()
 	proj.radius = UpgradeManager.get_bomb_launcher_radius() * ReincarnationManager.get_bomb_radius_mult()
 	proj.origin_launcher = self
 	get_tree().current_scene.add_child(proj)
@@ -238,6 +234,8 @@ func _ballistic_velocity(from: Vector2, to: Vector2, g: float) -> Vector2:
 
 # 后坐力：大炮沿朝向反方向平移再回弹。
 func _play_recoil() -> void:
+	if Presentation.reduced_motion:
+		return
 	if _recoil_tween and _recoil_tween.is_valid():
 		_recoil_tween.kill()
 	_turret.position.x -= 6.0 * _dir
@@ -249,9 +247,10 @@ func _play_recoil() -> void:
 # 炮口闪光。
 func _play_muzzle_flash() -> void:
 	var flash := Polygon2D.new()
-	flash.polygon = _circle_points(12.0)
+	flash.polygon = PackedVector2Array([Vector2(-12,-4),Vector2(-4,-4),Vector2(-4,-12),Vector2(4,-12),Vector2(4,-4),Vector2(12,-4),Vector2(12,4),Vector2(4,4),Vector2(4,12),Vector2(-4,12),Vector2(-4,4),Vector2(-12,4)])
 	flash.color = Color(1.0, 0.9, 0.5, 0.9)
 	flash.position = _muzzle.global_position
+	flash.add_to_group(&"in_game_entity")
 	get_tree().current_scene.add_child(flash)
 	flash.scale = Vector2(0.3, 0.3)
 	var t := flash.create_tween()

@@ -6,62 +6,78 @@ extends Node
 signal upgrades_changed   # 任一升级完成时发出，供升级面板刷新
 signal launcher_upgraded(new_level: int)   # 炸弹发射器升级时发出，供 LauncherManager 实时激活/更新
 
-const BASE_COST: int = 2         # 各升级项首次费用（经济随"从1起步"缩档：原 10）
-const COST_GROWTH: float = 1.3   # 每次升级后费用成长倍率
 
 # 各可升级项的满级上限（达到后按钮置灰显示"已满级"）。
 # 统一口径：基础数值/绝对值增长上限 5 级（等级 0..5）；百分比/倍率增长上限 3 级（等级 0..3）。
-const MAX_HAMMER_SPEED_LEVEL: int = 3       # 百分比（攻速倍率，+0.4/级）
-const MAX_HAMMER_DAMAGE_LEVEL: int = 3      # 百分比（伤害倍率，+0.3/级）
-const MAX_HAMMER_RANGE_LEVEL: int = 5       # 绝对值（+7px/级）
+const MAX_HAMMER_SPEED_LEVEL: int = 3       # 百分比（攻速倍率，按 RUN_VALUES）
+const MAX_HAMMER_DAMAGE_LEVEL: int = 3      # 百分比（伤害倍率，按 RUN_VALUES）
+const MAX_HAMMER_RANGE_LEVEL: int = 5       # 绝对值（半径按 RUN_VALUES）
 const MAX_COIN_MULTIPLIER_LEVEL: int = 5    # 金币倍率：用户指定上限 5 级
-const MAX_COIN_BASE_LEVEL: int = 5          # 绝对值（+5 基础金币/级）
-const MAX_BUILDING_DROP_SPEED_LEVEL: int = 3    # 百分比（下落速度倍率，+0.5/级）
+const MAX_COIN_BASE_LEVEL: int = 5          # 绝对值（+1 基础金币/级）
+const MAX_BUILDING_DROP_SPEED_LEVEL: int = 3    # 百分比（下落速度倍率，按 RUN_VALUES）
 
 # —— 炸弹发射器·数量升级表（索引 = 等级 0..4）——
 const MAX_LAUNCHER_COUNT_LEVEL: int = 4
 const LAUNCHER_COUNTS: Array[int]   = [0, 1, 2, 3, 4]   # 解锁的发射器数量（数量 = 等级）
-const LAUNCHER_COOLDOWNS: Array[float] = [0.0, 3.0, 2.5, 2.0, 1.6]   # 冷却（秒），随数量等级缩短
-const LAUNCHER_COSTS: Array[int]    = [2, 12, 25, 50, -1]  # 数量升级费用（满级为 -1，随"从1起步"缩档）
+const LAUNCHER_COOLDOWNS: Array[float] = [0.0, 3.4, 3.4, 3.4, 3.4]
+const LAUNCHER_COSTS: Array[int]    = [60, 900, 4500, 15000, -1]
 
 # —— 炸弹发射速率升级表（索引 = 等级 0..3）——
 # 倍率作用于基础冷却：最终冷却 = 基础冷却 × 速率倍率（0级 = 1.0 不加速）。百分比类 → 上限 3 级。
 const MAX_LAUNCHER_RATE_LEVEL: int = 3
-const LAUNCHER_RATE_MULTIPLIERS: Array[float] = [1.0, 0.85, 0.72, 0.62]   # 冷却倍率（随速率等级缩短）
-const LAUNCHER_RATE_COSTS: Array[int] = [4, 9, 18, 35]   # 速率升级费用
+const LAUNCHER_RATE_MULTIPLIERS: Array[float] = [1.0, 0.85, 0.72, 0.60]
+const LAUNCHER_RATE_COSTS: Array[int] = [200, 1100, 4200, -1]
 
 # —— 炸弹伤害升级表（索引 = 等级 0..5）——
 # 绝对值 → 上限 5 级。
 const MAX_BOMB_DAMAGE_LEVEL: int = 5
-const BOMB_DAMAGES: Array[int] = [3, 4, 6, 9, 12, 16]   # 爆炸伤害（随"从1起步"缩档：原 30~120）
-const BOMB_DAMAGE_COSTS: Array[int] = [4, 9, 20, 45, 90, -1]   # 伤害升级费用（满级为 -1，随"从1起步"缩档）
+const BOMB_DAMAGES: Array[int] = [6, 9, 13, 18, 25, 34]
+const BOMB_DAMAGE_COSTS: Array[int] = [100, 450, 1600, 5200, 16000, -1]
 
 # —— 炸弹范围升级表（索引 = 等级 0..5）——
 # 绝对值 → 上限 5 级。
 const MAX_BOMB_RADIUS_LEVEL: int = 5
-const BOMB_RADII: Array[float] = [80.0, 120.0, 160.0, 200.0, 240.0, 290.0]   # 爆炸半径 px（满级 290）
-const BOMB_RADIUS_COSTS: Array[int] = [4, 9, 20, 45, 90, -1]   # 范围升级费用（满级为 -1，随"从1起步"缩档）
+const BOMB_RADII: Array[float] = [70.0, 95.0, 120.0, 145.0, 170.0, 200.0]
+const BOMB_RADIUS_COSTS: Array[int] = [140, 650, 2300, 7500, 24000, -1]
 
 # —— 机制升级（转生次数解锁后，单局技能树用金币购买；满级为 -1）——
 # 暴击：方块受击时按暴击率判定 × 暴击伤害倍率。
 const MAX_CRIT_CHANCE_LEVEL: int = 3
 const CRIT_CHANCE_STEP: float = 0.10   # 每级 +10% 暴击率
-const CRIT_CHANCE_COSTS: Array[int] = [5, 12, 28, -1]
+const CRIT_CHANCE_COSTS: Array[int] = [250, 1000, 3200, -1]
 const MAX_CRIT_MULT_LEVEL: int = 3
-const CRIT_MULT_STEP: float = 0.5      # 每级暴击伤害倍率 +0.5（1.0 → 1.5/2.0/2.5）
-const CRIT_MULT_COSTS: Array[int] = [5, 12, 28, -1]
+const CRIT_MULT_STEP: float = 0.5      # 每级暴击伤害倍率 +0.5（2.0 → 2.5/3.0/3.5）
+const CRIT_MULT_COSTS: Array[int] = [400, 1600, 4800, -1]
 # 连锁：爆炸击碎方块后，对周围存留方块追加的连锁加伤比例。
 const MAX_CHAIN_LEVEL: int = 3
 const CHAIN_STEP: float = 0.15         # 每级连锁加伤 +15%
-const CHAIN_COSTS: Array[int] = [6, 14, 32, -1]
+const CHAIN_COSTS: Array[int] = [650, 2600, 8000, -1]
 # 散射炮：单台每次发射基数（索引 = 等级 0..3），升级→每次多发。
 const MAX_SCATTER_LEVEL: int = 3
 const SCATTER_MULTIS: Array[float] = [1.0, 2.0, 3.0, 4.0]
-const SCATTER_COSTS: Array[int] = [10, 22, 48, -1]
+const SCATTER_COSTS: Array[int] = [1800, 7000, 22000, -1]
+
+# 单局数值与费用：索引为当前等级；费用最后一项 -1 表示满级。
+const RUN_VALUES := {
+	"hammer_speed": [1.0, 1.20, 1.40, 1.65],
+	"hammer_damage": [1.0, 1.50, 2.0, 2.75],
+	"hammer_range": [0.0, 12.0, 24.0, 36.0, 52.0, 68.0],
+	"coin_multiplier": [1.0, 1.25, 1.50, 1.75, 2.0, 2.25],
+	"coin_base": [0, 1, 2, 3, 4, 5],
+	"building_drop_speed": [1.0, 1.25, 1.50, 1.80],
+}
+const RUN_COSTS := {
+	"hammer_speed": [12, 70, 260, -1],
+	"hammer_damage": [2, 35, 140, -1],
+	"hammer_range": [20, 160, 600, 1800, 5000, -1],
+	"coin_multiplier": [60, 240, 850, 2600, 7500, -1],
+	"coin_base": [75, 300, 1100, 3400, 9500, -1],
+	"building_drop_speed": [25, 180, 700, -1],
+}
 
 # —— 实际生效的升级倍率（供其它脚本读取）——
 var hammer_speed: float = 1.0     # 锤子攻速倍率（1.0 为初始）
-var hammer_damage: float = 1.0    # 锤子/爆炸伤害倍率（1.0 为初始）
+var hammer_damage: float = 1.0    # 锤子伤害倍率（1.0 为初始）
 var hammer_range: float = 0.0     # 锤子范围（命中半径，0 为仅命中点击处单个方块）
 var coin_multiplier: float = 1.0  # 金币倍率（1.0 为初始）
 var coin_base: int = 0            # 单块击破的基础金币加值（绝对值，加到击破基底上，见 BuildingBlock._spawn_gold）
@@ -82,7 +98,7 @@ var _bomb_radius_level: int = 0         # 炸弹范围等级
 
 # —— 机制升级实际生效值（供锤子/炸弹实体读取）——
 var crit_chance: float = 0.0            # 暴击率（0..1，命中时概率判定）
-var crit_multiplier: float = 1.0        # 暴击伤害倍率
+var crit_multiplier: float = 2.0        # 暴击伤害倍率
 var chain_damage: float = 0.0           # 爆炸连锁加伤比例
 var _crit_chance_level: int = 0
 var _crit_mult_level: int = 0
@@ -96,7 +112,7 @@ func upgrade_hammer_speed() -> void:
 	if _hammer_speed_level >= MAX_HAMMER_SPEED_LEVEL:
 		return
 	_hammer_speed_level += 1
-	hammer_speed += 0.4
+	recalculate_stats()
 	upgrades_changed.emit()
 
 
@@ -104,7 +120,7 @@ func upgrade_building_drop_speed() -> void:
 	if _building_drop_speed_level >= MAX_BUILDING_DROP_SPEED_LEVEL:
 		return
 	_building_drop_speed_level += 1
-	building_drop_speed += 0.5   # 每级下落提速 50%（动画时长 = 0.3s / 倍率）
+	recalculate_stats()
 	upgrades_changed.emit()
 
 
@@ -112,7 +128,7 @@ func upgrade_hammer_damage() -> void:
 	if _hammer_damage_level >= MAX_HAMMER_DAMAGE_LEVEL:
 		return
 	_hammer_damage_level += 1
-	hammer_damage += 0.3
+	recalculate_stats()
 	upgrades_changed.emit()
 
 
@@ -120,7 +136,7 @@ func upgrade_hammer_range() -> void:
 	if _hammer_range_level >= MAX_HAMMER_RANGE_LEVEL:
 		return   # 已达到范围满级，防越界
 	_hammer_range_level += 1
-	hammer_range += 7.0   # 每级 +7px 命中半径（经验值：原 +40px 太巨大，缩为收敛的小增量）
+	recalculate_stats()
 	upgrades_changed.emit()
 
 
@@ -128,16 +144,16 @@ func upgrade_coin_multiplier() -> void:
 	if _coin_multiplier_level >= MAX_COIN_MULTIPLIER_LEVEL:
 		return
 	_coin_multiplier_level += 1
-	coin_multiplier += 0.5
+	recalculate_stats()
 	upgrades_changed.emit()
 
 
-# 金币基础加值：每级单块击破基础金币 +5（绝对，加到 BuildingBlock._spawn_gold 的击破基底）。
+# 金币基础加值：每级单块击破基础金币 +1（绝对，加到 BuildingBlock._spawn_gold 的击破基底）。
 func upgrade_coin_base() -> void:
 	if _coin_base_level >= MAX_COIN_BASE_LEVEL:
 		return
 	_coin_base_level += 1
-	coin_base += 5
+	recalculate_stats()
 	upgrades_changed.emit()
 
 
@@ -210,7 +226,7 @@ func upgrade_scatter() -> void:
 
 
 # 重置全部升级：等级归 0、实际生效数值复位到初始值。
-# 复位后广播 upgrades_changed（技能树刷新），并广播 launcher_upgraded(0)（让 LauncherManager 隐藏全部炮台）。
+# 复位后广播 upgrades_changed（技能树刷新），并广播 launcher_upgraded(开局数量)（让 LauncherManager 隐藏全部炮台）。
 # 用于"重新开始"，需彻底复位以清除上一次游玩残留的等级。
 func reset() -> void:
 	# 六个数值类升级项：等级与派生数值一起复位
@@ -228,11 +244,12 @@ func reset() -> void:
 	_bomb_radius_level = 0
 	# 机制升级：等级归 0、派生值归位（转生门槛解锁由 ReincarnationManager 判定，单局等级不跨局保留）
 	_crit_chance_level = 0  ; crit_chance = 0.0
-	_crit_mult_level = 0    ; crit_multiplier = 1.0
+	_crit_mult_level = 0    ; crit_multiplier = 2.0
 	_chain_level = 0        ; chain_damage = 0.0
 	_scatter_level = 0
-	# 永久层·方向③数量升级：开局按累计转生次数自带炮台（转生 ≥1/2/3/4 → 1/2/3/4 台）
+	# 永久层·方向③数量升级：开局按累计转生次数自带炮台（转生 ≥1/3/5/8 → 1/2/3/4 台）
 	_bomb_launcher_level = ReincarnationManager.get_starting_launcher_count()
+	recalculate_stats()
 	upgrades_changed.emit()
 	launcher_upgraded.emit(_bomb_launcher_level)
 
@@ -270,33 +287,25 @@ func set_state_from_save(s: Dictionary) -> void:
 	launcher_upgraded.emit(_bomb_launcher_level)
 
 
-# —— 获取当前等级的升级费用（初始 10，每级 ×1.5 取整）——
+# —— 获取当前等级的升级费用（独立表驱动，满级 -1）——
 
 func get_hammer_speed_cost() -> int:
-	return _cost_for_level(_hammer_speed_level)
-
+	return int(RUN_COSTS["hammer_speed"][_hammer_speed_level])
 
 func get_building_drop_speed_cost() -> int:
-	return _cost_for_level(_building_drop_speed_level)
-
+	return int(RUN_COSTS["building_drop_speed"][_building_drop_speed_level])
 
 func get_hammer_damage_cost() -> int:
-	if _hammer_damage_level == 0:
-		return 2   # 首级固定 2 金币：与新手引导"摧毁方块得 2 金币 → 加一次伤害"闭环
-	return _cost_for_level(_hammer_damage_level)
-
+	return int(RUN_COSTS["hammer_damage"][_hammer_damage_level])
 
 func get_hammer_range_cost() -> int:
-	return _cost_for_level(_hammer_range_level)
-
+	return int(RUN_COSTS["hammer_range"][_hammer_range_level])
 
 func get_coin_multiplier_cost() -> int:
-	return _cost_for_level(_coin_multiplier_level)
-
+	return int(RUN_COSTS["coin_multiplier"][_coin_multiplier_level])
 
 func get_coin_base_cost() -> int:
-	return _cost_for_level(_coin_base_level)
-
+	return int(RUN_COSTS["coin_base"][_coin_base_level])
 
 # 发射器数量的升级费用：由独立费用表维护（满级返回 -1，供面板判定）。
 func get_bomb_launcher_cost() -> int:
@@ -437,12 +446,12 @@ const NODE_TITLES := {
 ## 这里取"单一前置"（每组仅一条），更复杂的或分支后续再扩。
 const NODE_PRE_REQS := {
 	"crit_chance": [{"node": "hammer_damage", "lvl": 2}],
-	"crit_mult":   [{"node": "hammer_damage", "lvl": 2}],
+	"crit_mult":   [{"node": "crit_chance", "lvl": 1}],
 	"bomb_damage": [{"node": "bomb_launcher", "lvl": 1}],
 	"bomb_radius": [{"node": "bomb_launcher", "lvl": 1}],
 	"bomb_rate":   [{"node": "bomb_launcher", "lvl": 1}],
 	"chain":       [{"node": "bomb_damage", "lvl": 2}],
-	"scatter":     [{"node": "bomb_damage", "lvl": 2}],
+	"scatter":     [{"node": "bomb_radius", "lvl": 2}],
 }
 
 ## 机制门：节点 → 需转生解锁的机制（转到 ReincarnationManager.is_mechanic_unlocked）
@@ -521,6 +530,53 @@ func _make_node_state(nid: String, state: String, reasons: Array[String], gate: 
 	}
 
 
-# 费用公式：BASE_COST × COST_GROWTH^level
-func _cost_for_level(level: int) -> int:
-	return roundi(BASE_COST * pow(COST_GROWTH, level))
+# 从等级重建派生属性，永久层与单局层相乘；重复调用不会叠加。
+func recalculate_stats() -> void:
+	hammer_speed = float(RUN_VALUES.hammer_speed[_hammer_speed_level]) * (1.0 + ReincarnationManager._get_percent_sum("swift_wind"))
+	hammer_damage = float(RUN_VALUES.hammer_damage[_hammer_damage_level]) * (1.0 + ReincarnationManager._get_percent_sum("destroy_power"))
+	hammer_range = float(RUN_VALUES.hammer_range[_hammer_range_level]) + ReincarnationManager._get_flat_sum("giant_power")
+	coin_multiplier = float(RUN_VALUES.coin_multiplier[_coin_multiplier_level]) * (1.0 + ReincarnationManager._get_percent_sum("coin_heart"))
+	coin_base = int(RUN_VALUES.coin_base[_coin_base_level])
+	building_drop_speed = float(RUN_VALUES.building_drop_speed[_building_drop_speed_level]) * (1.0 + ReincarnationManager._get_percent_sum("gravity_accel"))
+	auto_hammer = ReincarnationManager.get_node_level("auto_hammer") > 0
+
+
+func get_node_cost(nid: String) -> int:
+	if get_node_max_level(nid) < 0:
+		return -1
+	return int(call("get_" + nid + "_cost"))
+
+
+func purchase_node(nid: String) -> bool:
+	var st := get_node_state(nid)
+	if st.state == "locked" or st.state == "maxed":
+		return false
+	var cost := get_node_cost(nid)
+	if cost <= 0 or not GoldManager.spend_gold(cost):
+		return false
+	call("upgrade_" + nid)
+	return true
+
+
+# 提示卡直接查询实效，避免文案与数值表脱节。
+func get_node_effect(nid: String, next_level: bool = false) -> String:
+	var lv := mini(_get_node_level(nid) + (1 if next_level else 0), get_node_max_level(nid))
+	match nid:
+		"hammer_speed":
+			var speed := float(RUN_VALUES.hammer_speed[lv]) * (1.0 + ReincarnationManager._get_percent_sum("swift_wind"))
+			return "挥砸间隔 %.2f 秒（下限 0.30）" % maxf(0.5 / speed, 0.30)
+		"hammer_damage":
+			return "锤击伤害 %.2f" % (ReincarnationManager.get_hammer_base_damage() * float(RUN_VALUES.hammer_damage[lv]) * (1.0 + ReincarnationManager._get_percent_sum("destroy_power")))
+		"hammer_range": return "命中半径 %d px" % (float(RUN_VALUES.hammer_range[lv]) + ReincarnationManager._get_flat_sum("giant_power"))
+		"coin_multiplier": return "金币 ×%.2f" % (float(RUN_VALUES.coin_multiplier[lv]) * (1.0 + ReincarnationManager._get_percent_sum("coin_heart")))
+		"coin_base": return "每块基础金币 +%d" % int(RUN_VALUES.coin_base[lv])
+		"building_drop_speed": return "下落 ×%.2f" % (float(RUN_VALUES.building_drop_speed[lv]) * (1.0 + ReincarnationManager._get_percent_sum("gravity_accel")))
+		"bomb_launcher": return "自动炮台 %d 台" % LAUNCHER_COUNTS[lv]
+		"bomb_rate": return "发射间隔 %.2f 秒" % (3.4 * LAUNCHER_RATE_MULTIPLIERS[lv])
+		"bomb_damage": return "爆炸中心伤害 %.2f" % ((BOMB_DAMAGES[lv] + ReincarnationManager.get_bomb_base_damage_bonus()) * ReincarnationManager.get_bomb_damage_mult())
+		"bomb_radius": return "爆炸半径 %d px" % (BOMB_RADII[lv] * ReincarnationManager.get_bomb_radius_mult())
+		"crit_chance": return "锤击暴击率 %d%%" % (lv * CRIT_CHANCE_STEP * 100.0)
+		"crit_mult": return "锤击暴击伤害 ×%.1f" % (2.0 + lv * CRIT_MULT_STEP)
+		"chain": return "击碎后邻近加伤 %d%%" % (lv * CHAIN_STEP * 100.0)
+		"scatter": return "每次发射 %d 枚炮弹" % int(SCATTER_MULTIS[lv])
+	return ""

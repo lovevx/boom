@@ -11,11 +11,11 @@ var _gold_dark: Color = Color(0.72, 0.5, 0.08)
 func _ready() -> void:
 	add_to_group(&"in_game_entity")   # 归入"场上临时实体"组，重置时统一清理
 	# 初始缩放/透明度，用于"弹出"的放大感
-	scale = Vector2(0.5, 0.5)
+	scale = (Vector2.ONE if Presentation.reduced_motion else Vector2(0.8, 0.8))
 	# 上飘并淡出
 	var tween := create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(self, "position", position + Vector2(0.0, -60.0), 0.9) \
+	tween.tween_property(self, "position", position + Vector2(0.0, -12.0 if Presentation.reduced_motion else -48.0), 0.9) \
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(self, "modulate:a", 1.0, 0.12)
 	tween.tween_property(self, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -24,16 +24,9 @@ func _ready() -> void:
 
 
 func _draw() -> void:
-	# 徽章：金色圆底 + 描边
-	const RADIUS := 24.0
-	draw_circle(Vector2.ZERO, RADIUS, _gold)
-	draw_arc(Vector2.ZERO, RADIUS, 0.0, TAU, 40, _gold_dark, 4.0)
-	# 数字写在金币右侧外部，字体自适应避免两位数截断
-	var font: Font = ThemeDB.fallback_font
+	draw_texture_rect(Presentation.icon("coin"),Rect2(-12,-12,24,24),false)
 	var text := "+%d" % amount
-	var fs: int = 30
-	var origin := Vector2(RADIUS + 10.0, 9.0)
-	var size: Vector2 = font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs)
-	var width: int = int(size.x + 8.0)
-	draw_string_outline(font, origin, text, HORIZONTAL_ALIGNMENT_LEFT, width, fs, 6, _gold_dark)
-	draw_string(font, origin, text, HORIZONTAL_ALIGNMENT_LEFT, width, fs, Color.WHITE)
+	draw_string_outline(Presentation.NUMBERS,Vector2(17,8),text,HORIZONTAL_ALIGNMENT_LEFT,-1,24,4,Presentation.PROFILE.ink)
+	draw_string(Presentation.NUMBERS,Vector2(17,8),text,HORIZONTAL_ALIGNMENT_LEFT,-1,24,Presentation.PROFILE.gold)
+
+

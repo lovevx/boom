@@ -4,6 +4,7 @@ extends Camera2D
 ## 与震屏(在 baseline 上叠加随机偏移)互不打扰；复位保护见 reset_drift()。
 ## 注意：相机本身不随光标移动（背景视差由 Background.gd 用光标独立驱动，避免"大楼在动"）。
 
+var _last_shake_ms := -100000
 var _intensity: float = 0.0
 var _duration: float = 0.0
 var _elapsed: float = 0.0
@@ -19,23 +20,32 @@ var _orig_base := Vector2.ZERO  # 初始 baseline，复位/切场景时归位到
 func _ready() -> void:
 	_base_offset = offset
 	_orig_base = _base_offset
-	_start_drift()
 
 
 func shake(intensity: float, duration: float) -> void:
-	_intensity = intensity
+	if Presentation.reduced_motion or Presentation.shake_strength <= 0.0:
+		offset = Vector2.ZERO
+		return
+	var now := Time.get_ticks_msec()
+	if now - _last_shake_ms < 90:
+		return
+	_last_shake_ms = now
+	_intensity = maxf(intensity * Presentation.shake_strength, _intensity * 0.5)
 	_duration = duration
 	_elapsed = 0.0
 	set_process(true)
 
 
 func _process(delta: float) -> void:
+	if Presentation.reduced_motion:
+		offset = Vector2.ZERO
+		_duration = 0.0
 	if _duration <= 0.0:
 		_elapsed = 1.0
 		_offset_reset()
 		return
 
-	_elapsed += delta
+	_elapsed += delta / maxf(Engine.time_scale, 0.001)
 	var t := clampf(_elapsed / _duration, 0.0, 1.0)
 	# 强度随时间线性衰减
 	var strength := _intensity * (1.0 - t)

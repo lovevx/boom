@@ -34,6 +34,7 @@ const MAX_SCROLL_TIME := 0.45
 
 func _ready() -> void:
 	SoundManager.play_music()
+	_setup_presentation_hud()
 	_displayed = float(GoldManager.total_gold)
 	_label.text = "%d" % GoldManager.total_gold
 	_label.pivot_offset = _label.size / 2.0
@@ -106,30 +107,16 @@ func _on_gold_changed(new_total: int) -> void:
 
 # 金币徽章获得反馈：绕自身中心小幅点头摆动 + 横向缩放抖动，视觉稳、不飞出屏幕。
 func _pulse_coin_bar() -> void:
+	if Presentation.reduced_motion:
+		return
 	if _pulse_tween and _pulse_tween.is_valid():
-		_pulse_tween.kill()
-	if _wobble_tween and _wobble_tween.is_valid():
-		_wobble_tween.kill()
-	# 枢轴：几何中心，让徽章绕自身中心点头摆动；不随缩放改变枢轴
-	_coin_bar.pivot_offset = _coin_bar.size / 2.0
-	_coin_bar.rotation = 0.0
-	# ① 摆动：向左→向右→回正，小幅（±8°），快速短促
-	_wobble_tween = create_tween()
-	for r in [-deg_to_rad(8.0), deg_to_rad(8.0), 0.0]:
-		_wobble_tween.tween_property(_coin_bar, "rotation", r, 0.08) \
-			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
-	# ② 横向缩放抖动：随机序列，让每次增长动作不太重复；收尾固定回 1.0
+		return
+	_coin_bar.pivot_offset = _coin_bar.size/2.0
 	_pulse_tween = create_tween()
-	var pulse_bounces := randi_range(3, 5)
-	for i in pulse_bounces:
-		var target := randf_range(0.9, 1.18)
-		_pulse_tween.tween_property(_coin_bar, "scale:x", target, 0.07) \
-			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN_OUT)
-	_pulse_tween.tween_property(_coin_bar, "scale:x", 1.0, 0.06) \
-		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_pulse_tween.tween_property(_coin_bar,"scale",Vector2(1.035,1.035),0.06)
+	_pulse_tween.tween_property(_coin_bar,"scale",Vector2.ONE,0.12)
 
 
-# 滚动动画回调：把当前中间值写进标签文字。
 func _set_gold_text(value: float) -> void:
 	_label.text = "%d" % roundi(value)
 
@@ -149,6 +136,7 @@ func _confirm_restart_cancel() -> void:
 
 # 确认框"确定重新开始"：一次性重置金币 / 升级 / 楼体 / 场上残留，并关闭技能树。
 func _confirm_restart_ok() -> void:
+	GameFeel.reset()
 	_restart_confirm.hide()
 	# 1) 重置金币
 	GoldManager.reset()
@@ -176,3 +164,39 @@ func _clear_in_game_entities() -> void:
 		for child in dn_layer.get_children():
 			if is_instance_valid(child):
 				child.queue_free()
+
+
+func _setup_presentation_hud() -> void:
+	var icon: TextureRect = $GoldBar/CoinHBox/CoinIcon
+	icon.texture = Presentation.icon("coin")
+	icon.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	icon.position = Vector2(12,10)
+	icon.size = Vector2(44,44)
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_label.add_theme_font_override("font",Presentation.NUMBERS)
+	_label.add_theme_color_override("font_color",Presentation.PROFILE.gold)
+	_label.add_theme_color_override("font_outline_color",Presentation.PROFILE.ink)
+	_label.add_theme_constant_override("outline_size",4)
+	var badge := Panel.new()
+	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	badge.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	badge.add_theme_stylebox_override("panel",Presentation.THEME.get_stylebox("normal","Button"))
+	_coin_bar.add_child(badge)
+	_coin_bar.move_child(badge,0)
+	get_viewport().size_changed.connect(_layout_presentation_hud)
+	_layout_presentation_hud()
+
+func _layout_presentation_hud() -> void:
+	var viewport := get_viewport().get_visible_rect().size
+	_coin_bar.position = Vector2(24,24)
+	_coin_bar.size = Vector2(300,64)
+	var right := viewport.x - 24
+	for name in ["SkillTreeButton","RestartButton","MenuButton","SettingsButton"]:
+		var button: Button = get_node("GoldBar/"+name)
+		var width := 184.0 if name in ["SkillTreeButton","MenuButton"] else 160.0
+		right -= width
+		button.position = Vector2(right,24)
+		button.size = Vector2(width,64)
+		right -= 12
+	_reinc_btn.position = Vector2(344,24)
+	_reinc_btn.size = Vector2(144,64)
