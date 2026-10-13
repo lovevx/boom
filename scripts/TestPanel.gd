@@ -26,7 +26,8 @@ func _make_panel_style() -> StyleBoxFlat:
 
 
 func _ready() -> void:
-	if not OS.is_debug_build():
+	# 仅编辑器运行时启用；调试和正式导出都不创建测试入口。
+	if not OS.has_feature("editor"):
 		queue_free()
 		return
 	process_mode = Node.PROCESS_MODE_ALWAYS   # 技能树打开时游戏暂停，测试面板仍可点击使用

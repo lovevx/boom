@@ -28,6 +28,13 @@ func _ready() -> void:
 	sprite.modulate.a = 0.55 if kind == 5 else 0.68
 	sprite.z_index = 46
 	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	sprite.material = Presentation.scene_material("dust")
 	add_child(sprite)
 	sprite.play()
 	sprite.animation_finished.connect(queue_free)
+	if not Presentation.reduced_motion:
+		var drift := Presentation.PROFILE.dust_drift * minf(fx_scale, 1.25)
+		var tween := create_tween().set_parallel(true)
+		tween.tween_property(sprite, "position:y", sprite.position.y - drift, 0.55).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		tween.tween_property(sprite, "scale:x", sprite.scale.x * 1.3, 0.55).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(sprite, "modulate:a", 0.0, 0.55).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)

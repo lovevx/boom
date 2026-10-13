@@ -1,0 +1,75 @@
+{
+	"checks": [
+		{
+			"name": "360_blocks_preserved",
+			"passed": true
+		},
+		{
+			"name": "tower_shadow_matches_actual_480px_footprint",
+			"passed": true
+		},
+		{
+			"name": "undeployed_launcher_has_no_shadow",
+			"passed": true
+		},
+		{
+			"name": "deployment_shadow_stays_on_ground",
+			"passed": true
+		},
+		{
+			"name": "deployment_reveals_shadow",
+			"passed": true
+		},
+		{
+			"name": "recoil_does_not_move_shadow",
+			"passed": true
+		},
+		{
+			"name": "hidden_launcher_hides_shadow",
+			"passed": true
+		},
+		{
+			"name": "reduced_motion_shadow_appears_without_tween",
+			"passed": true
+		},
+		{
+			"name": "run_reset_hides_deployed_shadow",
+			"passed": true
+		},
+		{
+			"name": "silhouette_follows_falling_block",
+			"passed": true
+		},
+		{
+			"name": "destroyed_block_releases_its_visuals",
+			"passed": true
+		},
+		{
+			"name": "refill_after_styled_block_destruction",
+			"passed": true
+		},
+		{
+			"name": "equipment_shader_preserves_transparent_canvas",
+			"passed": true
+		},
+		{
+			"name": "shader_applies_deployment_alpha_once",
+			"passed": true
+		},
+		{
+			"name": "wide_extensions_share_matching_texture_edges",
+			"passed": true
+		},
+		{
+			"name": "rendered_ultrawide_sky_has_no_color_seam",
+			"passed": true
+		},
+		{
+			"name": "scene_change_releases_launcher_shadow",
+			"passed": true
+		}
+	],
+	"failures": [],
+	"renderer": "NVIDIA GeForce RTX 3060 Laptop GPU",
+	"user_dir": "C:/Users/31992/AppData/Roaming/Godot/app_userdata/BoomamePresentationValidationMotionSceneArtValidation"
+}

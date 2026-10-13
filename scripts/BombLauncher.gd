@@ -1,7 +1,8 @@
 extends StaticBody2D
+signal bomb_fired(at: Vector2)  # 一次实际齐射后广播，部署不算开炮。
 ## 炸弹发射器实体（游戏世界对象，非 UI）。
 ## 位于建筑两侧地面，朝建筑区域内随机目标发射抛物线炸弹。
-## 美术：使用 assets/launcher/ 烘焙好的大炮帧序列（工业水泥搅拌车风格，朝右）。位于建筑右侧的炮台自动镜像朝左。
+## 美术：原创分层液压拆楼炮，64×64 原生像素，默认朝左，按站位镜像。
 ## 动画不再循环待机：平时静止显示第 IDLE 帧；
 ## 冷却完毕选定目标后，一次性播放攻击动画，在 FIRE_FRAME_INDEX 对应帧炮口出膛（炮弹沿炮口朝向的轨迹飞出），播放完回到待机帧。
 ## 伤害/半径/冷却实时读取 UpgradeManager，升级后立即生效。
@@ -21,22 +22,18 @@ const BUILDING_TOP_DY := 40.0              # 目标区顶部相对 Building 原�
 const BUILDING_BOTTOM_DY := 820.0          # 目标区底部相对 Building 原点（覆盖到接近楼下地面）
 const FIRST_SHOT_DELAY := 0.8             # 刚激活时首次开火的延迟（快速反馈）
 
-# ---- 大炮帧序列（烘焙后 240×240，透明背景）----
-const FRAME_PATH := "res://assets/launcher/launcher_%03d.png"
-const FRAME_START := 6
-const FRAME_END := 38
-const SPRITE_SCALE := 2.0                 # 大炮最终缩放（240px → 约 110px 高，与 40px 方块匹配）
-const ART_HALF := 32.0                    # 240px 帧的半边长（Sprite 居中，local 以帧中心为原点）
-const MUZZLE_XY := Vector2(27.0, 10.0)    # 炮口（弹丸发射口）在某帧内的像素坐标
-const FEET_BOTTOM_Y := 62.0               # 大炮底座底部像素行（着地点）
+# ---- 原创 64×64 透明像素动画 ----
+const SPRITE_SCALE := 2.0                 # 原生 64px 以 2 倍显示
+const ART_HALF := 32.0                    # 64px 帧的半边长
+const MUZZLE_XY := Vector2(10.0, 21.0)    # 第 20 帧：液压后坐后的炮口坐标
+const FEET_BOTTOM_Y := 64.0               # 底座末行 y=63，外边缘 y=64
 const BUILDING_CENTER_X := 960.0           # 建筑水平中心，用于决定炮台是否镜像朝左
 const FEET_WORLD_Y := 1000.0               # 炮台底座着地的目标世界 y（地面顶面）
 const SPAWN_Y := 985.0                     # LauncherManager 出生点标记的世界 y（Main.tscn 固定）
 
 # ---- 非循环动画：待机静帧 + 一次性攻击 ----
-const IDLE_FRAME_PNG := 6                  # 待机显示的帧（launcher_006，静止不循环）
 const ATK_FPS := 16.0                      # 攻击动画播放速率（帧/秒）
-const FIRE_FRAME_INDEX := 20               # 攻击序列中炮弹出膛帧（索引 0 对应 launcher_006 → 20 对应 026）
+const FIRE_FRAME_INDEX := 20               # 攻击序列中的出膛帧
 										   # 挺到这一帧才让炮弹沿炮口朝向飞出；效果可在此微调
 
 @onready var _turret: AnimatedSprite2D = $TurretSprite
@@ -49,22 +46,33 @@ var _dir := 1.0                 # 朝向：+1 朝右（正常），-1 朝左（�
 var _recoil_tween: Tween
 var _firing := false            # 攻击动画是否在播放（等待出膛帧）
 var _pending_target := Vector2.ZERO   # 本次攻击选定的目标
+var _volley_count := 0
+var _volley_multiplier := 1.0
+var _contact_shadow: Node2D
 
 
 func _ready() -> void:
+	GoldManager.run_reset.connect(func() -> void:
+		_volley_count = 0
+		_volley_multiplier = 1.0)
 	_setup_sprite()
 	_setup_facing()
 	_ground_position()
+	_contact_shadow = preload("res://scripts/ContactShadow.gd").new()
+	_contact_shadow.name = "ContactShadow"
+	_contact_shadow.owner_visual = self
+	add_child(_contact_shadow)
 	_timer.one_shot = true             # 循环冷却
 	_timer.timeout.connect(_on_cooldown_timeout)
 
 
 # 加载大炮帧序列并挂为两个动画：
-# idle —— 仅第 IDLE_FRAME_PNG 帧（静止待机，不循环）；
-# attack —— 整段 006~038，一次性播放，出膛帧由 FIRE_FRAME_INDEX 决定。
+# idle —— 第 0 帧静止待机；
+# attack —— 33 帧一次性播放，出膛帧由 FIRE_FRAME_INDEX 决定。
 func _setup_sprite() -> void:
 	_turret.sprite_frames = preload("res://assets/presentation/launcher_frames.tres")
 	_turret.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_turret.material = Presentation.scene_material("equipment")
 	_turret.play("idle")
 
 
@@ -85,6 +93,7 @@ func _ground_position() -> void:
 # 由 LauncherManager 调用：部署动画（从地下升起 + 弹入），并启动冷却。
 func play_deploy() -> void:
 	_active = true
+	_contact_shadow.reveal()
 	SoundManager.play("launcher_deploy")
 	if Presentation.reduced_motion:
 		_ensure_timer_started()
@@ -201,6 +210,10 @@ func _launch_bomb(target: Vector2) -> void:
 	_play_recoil()
 	_play_muzzle_flash()
 	var count: int = maxi(UpgradeManager.get_scatter_count(), 1)
+	_volley_count += 1
+	_volley_multiplier = 1.0
+	if _volley_count % UpgradeManager.get_barrage_period() == 0:
+		_volley_multiplier += UpgradeManager.demo_value("barrage")
 	for _i in range(count):
 		# 散射：多发目标在原始瞄准点周围散布，形成扇形覆盖；单发则精确命中。
 		var aim := target
@@ -208,6 +221,8 @@ func _launch_bomb(target: Vector2) -> void:
 			var spread := Vector2(randf_range(-80.0, 80.0), randf_range(-45.0, 45.0))
 			aim = target + spread
 		_spawn_projectile(aim)
+	DemoProgress.register_scatter_volley(count)
+	bomb_fired.emit(_muzzle.global_position)
 
 
 func _spawn_projectile(target: Vector2) -> void:
@@ -218,6 +233,9 @@ func _spawn_projectile(target: Vector2) -> void:
 	proj.damage = (UpgradeManager.get_bomb_launcher_damage() + ReincarnationManager.get_bomb_base_damage_bonus()) \
 			* ReincarnationManager.get_bomb_damage_mult()
 	proj.radius = UpgradeManager.get_bomb_launcher_radius() * ReincarnationManager.get_bomb_radius_mult()
+	proj.damage *= _volley_multiplier
+	if _volley_multiplier > 1.0:
+		proj.modulate = Color(1.0, 0.65, 0.25)
 	proj.origin_launcher = self
 	get_tree().current_scene.add_child(proj)
 	proj.set_initial_velocity(_ballistic_velocity(_muzzle.global_position, target, gravity))
@@ -246,17 +264,11 @@ func _play_recoil() -> void:
 
 # 炮口闪光。
 func _play_muzzle_flash() -> void:
-	var flash := Polygon2D.new()
-	flash.polygon = PackedVector2Array([Vector2(-12,-4),Vector2(-4,-4),Vector2(-4,-12),Vector2(4,-12),Vector2(4,-4),Vector2(12,-4),Vector2(12,4),Vector2(4,4),Vector2(4,12),Vector2(-4,12),Vector2(-4,4),Vector2(-12,4)])
-	flash.color = Color(1.0, 0.9, 0.5, 0.9)
+	var flash := preload("res://scripts/ImpactFx.gd").new()
+	flash.muzzle = true
+	flash.direction = _ballistic_velocity(_muzzle.global_position, _pending_target, gravity).normalized()
 	flash.position = _muzzle.global_position
-	flash.add_to_group(&"in_game_entity")
 	get_tree().current_scene.add_child(flash)
-	flash.scale = Vector2(0.3, 0.3)
-	var t := flash.create_tween()
-	t.tween_property(flash, "scale", Vector2.ONE, 0.08)
-	t.parallel().tween_property(flash, "modulate:a", 0.0, 0.14)
-	t.tween_callback(flash.queue_free)
 
 
 func _circle_points(radius: float) -> PackedVector2Array:

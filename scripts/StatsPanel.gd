@@ -51,7 +51,7 @@ func _build() -> void:
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(dim)
 
-	var panel_size := Vector2(560, 380)
+	var panel_size := Vector2(620, 560)
 	var scr := get_viewport_rect().size
 	var root := Control.new()
 	root.position = (scr - panel_size) / 2.0

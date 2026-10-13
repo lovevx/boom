@@ -143,10 +143,8 @@ def popup(s):
 \tdraw_string(Presentation.NUMBERS,Vector2(17,8),text,HORIZONTAL_ALIGNMENT_LEFT,-1,24,Presentation.PROFILE.gold)''')
 
 def sound(s):
-    s=s.replace('res://assets/audio/bgm/BGM1.mp3','res://assets/presentation/audio/yard_shift.wav')
-    s=s.replace('res://assets/audio/bgm/bgm2.mp3','res://assets/presentation/audio/demolition_rhythm.wav')
-    s=s.replace('["BGM 1", "BGM 2"]','["晴日工地", "拆除节拍"]')
-    s=re.sub(r'"res://assets/audio/[^"]*/([^/"]+)\.(?:mp3|wav)"',lambda m:'"res://assets/presentation/audio/sfx/'+m[1]+'.wav"',s)
+    # Keep the user's BGM. Only gameplay/UI effects use the presentation sound pack.
+    s=re.sub(r'"res://assets/audio/(?!bgm/)[^"]*/([^/"]+)\.(?:mp3|wav)"',lambda m:'"res://assets/presentation/audio/sfx/'+m[1]+'.wav"',s)
     s=s.replace('const TABLE := {','const TABLE := {\n\t"shatter_metal": {"path":"res://assets/presentation/audio/sfx/shatter_metal.wav", "bus":CAT_SFX, "volume":-8.0},')
     s=s.replace('var _streams := {}','var _last_played := {}\nvar _duck_tween: Tween\nvar _streams := {}')
     s=s.replace('\t_generate_all()','\t_generate_all()\n\tvar limiter := AudioEffectLimiter.new()\n\tlimiter.ceiling_db = -1.0\n\tlimiter.threshold_db = -6.0\n\tAudioServer.add_bus_effect(0, limiter)')

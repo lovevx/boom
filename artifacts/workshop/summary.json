@@ -1,0 +1,17 @@
+{
+  "ui": {
+    "passed": 87,
+    "report": "verification-visual.json"
+  },
+  "motion": {
+    "passed": 16,
+    "report": "motion-verification.json"
+  },
+  "total_passed": 103,
+  "capture": {
+    "fps": 30,
+    "seconds": 10.533333,
+    "video": "motion.mp4"
+  },
+  "limitations": "Shutdown-only CanvasItem/ObjectDB messages remain; no SCRIPT ERROR in final UI or motion run."
+}

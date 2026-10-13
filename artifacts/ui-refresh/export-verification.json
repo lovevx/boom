@@ -1,0 +1,77 @@
+{
+	"checks": [
+		{
+			"name": "runtime_present:assets/presentation/launcher.png",
+			"passed": true
+		},
+		{
+			"name": "runtime_present:assets/presentation/launcher_frames.tres",
+			"passed": true
+		},
+		{
+			"name": "runtime_present:assets/presentation/icons/help.svg",
+			"passed": true
+		},
+		{
+			"name": "runtime_present:assets/presentation/icons/exit.svg",
+			"passed": true
+		},
+		{
+			"name": "runtime_present:assets/audio/bgm/BGM1.mp3",
+			"passed": true
+		},
+		{
+			"name": "runtime_present:assets/audio/bgm/bgm2.mp3",
+			"passed": true
+		},
+		{
+			"name": "historical_source_excluded:assets/launcher/launcher_006.png",
+			"passed": true
+		},
+		{
+			"name": "historical_source_excluded:assets/ui/大炮图.png",
+			"passed": true
+		},
+		{
+			"name": "historical_source_excluded:assets/presentation/sources/launcher.png",
+			"passed": true
+		},
+		{
+			"name": "historical_source_excluded:assets/presentation/sources/hydraulic/concept.png",
+			"passed": true
+		},
+		{
+			"name": "historical_source_excluded:assets/presentation/audio/yard_shift.wav",
+			"passed": true
+		},
+		{
+			"name": "historical_source_excluded:assets/presentation/audio/demolition_rhythm.wav",
+			"passed": true
+		},
+		{
+			"name": "exported_game_generates_tower",
+			"passed": true
+		},
+		{
+			"name": "exported_ui_interfaces_work",
+			"passed": true
+		},
+		{
+			"name": "original_bgm_plays_and_loops_0",
+			"passed": true
+		},
+		{
+			"name": "original_bgm_plays_and_loops_1",
+			"passed": true
+		},
+		{
+			"name": "original_bgm_continues_across_scenes",
+			"passed": true
+		},
+		{
+			"name": "career_dialog_bounds",
+			"passed": true
+		}
+	],
+	"failures": []
+}

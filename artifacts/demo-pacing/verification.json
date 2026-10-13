@@ -1,0 +1,189 @@
+{
+	"checks": [
+		{
+			"name": "stage_0_rejects_below_threshold",
+			"passed": true
+		},
+		{
+			"name": "stage_0_threshold_and_rp_hint_agree",
+			"passed": true
+		},
+		{
+			"name": "stage_1_rejects_below_threshold",
+			"passed": true
+		},
+		{
+			"name": "stage_1_threshold_and_rp_hint_agree",
+			"passed": true
+		},
+		{
+			"name": "stage_2_rejects_below_threshold",
+			"passed": true
+		},
+		{
+			"name": "stage_2_threshold_and_rp_hint_agree",
+			"passed": true
+		},
+		{
+			"name": "stage_3_rejects_below_threshold",
+			"passed": true
+		},
+		{
+			"name": "stage_3_threshold_and_rp_hint_agree",
+			"passed": true
+		},
+		{
+			"name": "rp_still_capped_at_8",
+			"passed": true
+		},
+		{
+			"name": "starting_capital_excluded_from_demo_production",
+			"passed": true
+		},
+		{
+			"name": "demo_statistics_include_real_production",
+			"passed": true
+		},
+		{
+			"name": "repeated_load_preserves_counters_without_rewards",
+			"passed": true
+		},
+		{
+			"name": "new_slot_clears_demo_state",
+			"passed": true
+		},
+		{
+			"name": "slot_isolation_restores_demo_state",
+			"passed": true
+		},
+		{
+			"name": "legacy_save_keeps_progress_defaults_demo_clock",
+			"passed": true
+		},
+		{
+			"name": "scatter_count_requires_final_phase",
+			"passed": true
+		},
+		{
+			"name": "single_projectile_not_scatter",
+			"passed": true
+		},
+		{
+			"name": "one_scatter_round_counts_once",
+			"passed": true
+		},
+		{
+			"name": "run_reset_preserves_elapsed_and_legacy_clears_volleys",
+			"passed": true
+		},
+		{
+			"name": "engineering_goal_does_not_jump_with_rp_brackets",
+			"passed": true
+		},
+		{
+			"name": "early_finale_rebirth_warns_about_reset",
+			"passed": true
+		},
+		{
+			"name": "focus_in_discards_suspended_background_gap",
+			"passed": true
+		},
+		{
+			"name": "clock_counts_gameplay",
+			"passed": true
+		},
+		{
+			"name": "clock_counts_skill_reading_while_paused",
+			"passed": true
+		},
+		{
+			"name": "clock_counts_rebirth_reading",
+			"passed": true
+		},
+		{
+			"name": "clock_excludes_settings",
+			"passed": true
+		},
+		{
+			"name": "clock_excludes_unfocused_window",
+			"passed": true
+		},
+		{
+			"name": "clock_uses_real_seconds_despite_hitstop",
+			"passed": true
+		},
+		{
+			"name": "clock_excludes_scene_transition",
+			"passed": true
+		},
+		{
+			"name": "scatter_requires_radius_upgrade",
+			"passed": true
+		},
+		{
+			"name": "scatter_available_with_radius_level_one",
+			"passed": true
+		},
+		{
+			"name": "real_launcher_registers_a_scatter_round",
+			"passed": true
+		},
+		{
+			"name": "gold_alone_cannot_complete_demo",
+			"passed": true
+		},
+		{
+			"name": "scatter_alone_cannot_complete_demo",
+			"passed": true
+		},
+		{
+			"name": "completion_fires_once_and_saves_pending_summary",
+			"passed": true
+		},
+		{
+			"name": "pending_summary_survives_reload",
+			"passed": true
+		},
+		{
+			"name": "completion_waits_until_existing_modal_closes",
+			"passed": true
+		},
+		{
+			"name": "completion_dialog_pauses_and_displays_results",
+			"passed": true
+		},
+		{
+			"name": "summary_fits_(1280, 720)",
+			"passed": true
+		},
+		{
+			"name": "summary_fits_(1920, 1080)",
+			"passed": true
+		},
+		{
+			"name": "summary_fits_(3440, 1440)",
+			"passed": true
+		},
+		{
+			"name": "continue_playing_restores_pause",
+			"passed": true
+		},
+		{
+			"name": "completed_save_never_reopens_automatic_summary",
+			"passed": true
+		},
+		{
+			"name": "restart_preserves_completed_result",
+			"passed": true
+		},
+		{
+			"name": "completion_return_to_menu_uses_real_save_and_transition",
+			"passed": true
+		},
+		{
+			"name": "clock_excludes_main_menu",
+			"passed": true
+		}
+	],
+	"failed": 0
+}

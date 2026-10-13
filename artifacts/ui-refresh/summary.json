@@ -1,0 +1,43 @@
+{
+  "ui": {
+    "passed": 87,
+    "total": 87,
+    "report": "verification-visual.json"
+  },
+  "growth": {
+    "passed": 38,
+    "total": 38,
+    "report": "regression-growth/verification.json"
+  },
+  "balance": {
+    "passed": 51,
+    "total": 51,
+    "report": "regression-balance/verification.json"
+  },
+  "collapse": {
+    "passed": 11,
+    "total": 11,
+    "report": "regression-collapse/verification.json"
+  },
+  "presentation": {
+    "passed": 37,
+    "total": 37,
+    "report": "regression-presentation/functional-verification.json"
+  },
+  "export": {
+    "passed": 11,
+    "total": 11,
+    "report": "export-verification.json"
+  },
+  "asset": {
+    "passed": 7,
+    "total": 7,
+    "report": "asset-verification.json"
+  },
+  "total_passed": 242,
+  "engine": "Godot 4.7.2-stable",
+  "user_data": "BoomameDemoValidation (isolated from player saves)",
+  "movie_seconds": 31.4,
+  "pack_sha256": "bd01a493caf6f4cf573de9ee5386bd527ed34a7475a83d3d77ea192f427f8722",
+  "remaining_log_messages": "Godot shutdown-only CanvasItem/ObjectDB/resource-in-use messages remain; no SCRIPT ERROR in final UI, collapse or pack run."
+}

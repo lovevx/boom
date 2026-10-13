@@ -27,6 +27,9 @@ const NODE_ORDER := [
 	["ATTACK", "base_damage"], ["ATTACK", "auto_hammer"], ["ATTACK", "destroy_power"],
 	["ATTACK", "swift_wind"], ["ATTACK", "giant_power"], ["ATTACK", "gravity_accel"],
 	["TURRET", "turret_base_damage"], ["TURRET", "ammo_enhance"], ["TURRET", "blast_range"],
+	["GOLD", "salvage_license"], ["GOLD", "contract_license"], ["GOLD", "procurement"],
+	["ATTACK", "combo_memory"], ["ATTACK", "wave_training"], ["ATTACK", "execute_training"],
+	["TURRET", "blast_training"], ["TURRET", "echo_mastery"], ["TURRET", "barrage_training"],
 ]
 const COL_META := {
 	"GOLD": {"label": "方向① 获取金币", "color": C_COL_GOLD},
@@ -64,6 +67,8 @@ func _ready() -> void:
 # —— 打开 / 关闭 ——
 
 func open() -> void:
+	if visible:
+		return
 	_paused_before_open = get_tree().paused
 	get_tree().paused = true
 	show()
@@ -81,7 +86,10 @@ func close() -> void:
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if visible and event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		close()
+		if _confirm.visible:
+			_confirm.hide()
+		else:
+			close()
 		get_viewport().set_input_as_handled()
 
 func _build() -> void:
@@ -94,7 +102,7 @@ func _build() -> void:
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(dim)
 
-	var panel_size := Vector2(1340, 800)
+	var panel_size := Vector2(1460, 900)
 	var scr := get_viewport_rect().size
 	var root := Control.new()
 	root.position = (scr - panel_size) / 2.0
@@ -137,7 +145,7 @@ func _build() -> void:
 
 	# —— 统计行 ——
 	var stats := HBoxContainer.new()
-	stats.add_theme_constant_override("separation", 36)
+	stats.add_theme_constant_override("separation", 24)
 	stats.alignment = BoxContainer.ALIGNMENT_CENTER
 	vbox.add_child(stats)
 	_rp_label = _stat_label(stats)
@@ -146,13 +154,15 @@ func _build() -> void:
 	_lit_label = _stat_label(stats)
 	_progress_label = Label.new()
 	_progress_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_progress_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_progress_label.custom_minimum_size.y = 58
 	_progress_label.add_theme_font_size_override("font_size", 17)
 	_progress_label.add_theme_color_override("font_color", C_COL_GOLD)
 	vbox.add_child(_progress_label)
 
 	# —— 三大方向列 ——
 	var cols := HBoxContainer.new()
-	cols.custom_minimum_size.y = 470
+	cols.custom_minimum_size.y = 0
 	cols.add_theme_constant_override("separation", 18)
 	cols.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(cols)
@@ -175,6 +185,7 @@ func _build() -> void:
 	foot.add_theme_constant_override("separation", 6)
 	vbox.add_child(foot)
 	var hint := Label.new()
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	hint.text = "永久加成购买后立即生效；转生清空本局，按拆楼累计产出结算 RP，开局资金不计入收益。"
 	hint.add_theme_font_size_override("font_size", 16)
 	hint.add_theme_color_override("font_color", C_MUTED)
@@ -185,6 +196,7 @@ func _build() -> void:
 	var reinc_btn := Button.new()
 	_reinc_btn = reinc_btn
 	reinc_btn.text = "◆ 转　生　◆"
+	reinc_btn.theme_type_variation = &"PrimaryButton"
 	reinc_btn.custom_minimum_size = Vector2(260, 56)
 	reinc_btn.add_theme_font_size_override("font_size", 26)
 	var sbn := StyleBoxFlat.new(); sbn.bg_color = Color(0.72, 0.24, 0.1, 1)
@@ -291,6 +303,7 @@ func _make_row(nid: String) -> PanelContainer:
 	v.add_child(name_lb)
 
 	var effect_lb := Label.new()
+	effect_lb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	effect_lb.add_theme_font_size_override("font_size", 14)
 	effect_lb.add_theme_color_override("font_color", C_MUTED)
 	v.add_child(effect_lb)
@@ -329,7 +342,7 @@ func refresh_all() -> void:
 	if gain >= ReincarnationManager.MAX_RP_PER_RUN:
 		_progress_label.text = "本局 RP 已达上限 +%d　|　第 %d 次转生：%s" % [gain, ReincarnationManager.total_reincarnations + 1, ReincarnationManager.get_milestone_text(ReincarnationManager.total_reincarnations + 1)]
 	_reinc_btn.disabled = gain <= 0
-	_reinc_btn.text = "转生 · +%d RP" % gain if gain > 0 else "累计产出 %d 金币后转生" % ReincarnationManager.MIN_RUN_GOLD_FOR_GAIN
+	_reinc_btn.text = "转生 · +%d RP" % gain if gain > 0 else "累计产出 %d 金币后转生" % ReincarnationManager.get_required_run_gold()
 	for nid in _rows:
 		_update_row(nid)
 
@@ -350,14 +363,14 @@ func _update_row(nid: String) -> void:
 	if lv >= max_lv:
 		btn.text = "已满级"
 		btn.disabled = true
-		btn.add_theme_stylebox_override("normal", _box_style(C_FULL))
+		btn.theme_type_variation = &"Button"
 	else:
 		var cost: int = ReincarnationManager.get_node_cost(nid)
 		var afford := ReincarnationManager.can_afford_node(nid)
 		var reason := ReincarnationManager.get_node_lock_reason(nid)
-		btn.text = reason if not reason.is_empty() else "升级 · %d RP" % cost
+		btn.text = reason if not reason.is_empty() else ("升级 · %d RP" % cost if afford else "缺少 RP · 需要 %d" % cost)
 		btn.disabled = not afford
-		btn.add_theme_stylebox_override("normal", _box_style(C_ENABLED if afford else C_DISABLED))
+		btn.theme_type_variation = &"AccentButton" if afford else &"Button"
 
 
 func _box_style(color: Color) -> StyleBoxFlat:
@@ -441,7 +454,8 @@ func _build_confirm() -> void:
 
 	var ok := Button.new()
 	_cf_ok = ok
-	ok.text = "转生"
+	ok.text = "确认转生"
+	ok.theme_type_variation = &"PrimaryButton"
 	ok.custom_minimum_size = Vector2(150, 50)
 	ok.add_theme_font_size_override("font_size", 22)
 	var so := _box_style(Color(0.68, 0.22, 0.08, 1))
@@ -462,10 +476,12 @@ func _on_reincarnate_pressed() -> void:
 	for nid in ReincarnationManager.NODE_DEFS:
 		if ReincarnationManager.get_node_level(nid) > 0:
 			lit += 1
-	if run_gold < ReincarnationManager.MIN_RUN_GOLD_FOR_GAIN:
-		_cf_warn.text = "还差 %d 拆楼产出金币；达到门槛后才可转生。" % (ReincarnationManager.MIN_RUN_GOLD_FOR_GAIN - run_gold)
+	if run_gold < ReincarnationManager.get_required_run_gold():
+		_cf_warn.text = "还差 %d 拆楼产出金币；达到门槛后才可转生。" % (ReincarnationManager.get_required_run_gold() - run_gold)
 	else:
 		_cf_warn.text = "转生后本局金币与升级清零，%d 个永久节点保留。\n本次解锁：%s" % [lit, ReincarnationManager.get_milestone_text(ReincarnationManager.total_reincarnations + 1)]
+	if ReincarnationManager.total_reincarnations >= 3 and not DemoProgress.is_completed:
+		_cf_warn.text += "\n最终工程尚未完成：再次转生将清空本轮产出和散射进度。"
 	_cf_ok.disabled = gain <= 0
 	_confirm.show()
 
@@ -483,3 +499,7 @@ func _on_confirm_ok() -> void:
 	ReincarnationManager.apply_permanent_bonuses()
 	SaveManager.save_current_slot()
 	ScreenTransition.transition_to(MAIN_MENU_SCENE)
+
+
+func settlement_screen_rect() -> Rect2:
+	return Presentation.screen_rect(_cf_ok if _confirm.visible else _reinc_btn)

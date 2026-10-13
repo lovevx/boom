@@ -1,0 +1,27 @@
+[
+  {
+    "report": "artifacts/scene-art/verification.json",
+    "checks": 17,
+    "passed": 17
+  },
+  {
+    "report": "artifacts/scene-art/regression/presentation/functional-verification.json",
+    "checks": 37,
+    "passed": 37
+  },
+  {
+    "report": "artifacts/scene-art/regression/collapse/verification.json",
+    "checks": 11,
+    "passed": 11
+  },
+  {
+    "report": "artifacts/scene-art/regression/motion/report.json",
+    "checks": 17,
+    "passed": 17
+  },
+  {
+    "report": "artifacts/scene-art/regression/ui/verification.json",
+    "checks": 87,
+    "passed": 87
+  }
+]

@@ -6,6 +6,10 @@ const PROFILE = preload("res://assets/presentation/profile.tres")
 const THEME = preload("res://assets/presentation/theme.tres")
 const FONT = preload("res://assets/presentation/fonts/NotoSansCJKsc-Regular.otf")
 const NUMBERS = preload("res://assets/presentation/fonts/JetBrainsMono-Regular.ttf")
+const WORKSHOP_CHROME = preload("res://scripts/WorkshopChrome.gd")
+const BACKGROUND_HARMONY = preload("res://assets/presentation/shaders/background_harmony.gdshader")
+const MATERIAL_HARMONY = preload("res://assets/presentation/shaders/material_harmony.gdshader")
+const DUST_HARMONY = preload("res://assets/presentation/shaders/dust_harmony.gdshader")
 var _popup_scene: PackedScene
 var shake_strength := 0.55
 var reduced_motion := false
@@ -14,6 +18,36 @@ var _counts: Dictionary = {}
 var _popups: Dictionary = {}
 var _frames: Dictionary = {}
 var _shards: Dictionary = {}
+var _scene_materials: Dictionary = {}
+
+func scene_material(kind: String) -> ShaderMaterial:
+	if _scene_materials.has(kind):
+		return _scene_materials[kind]
+	var material := ShaderMaterial.new()
+	if kind == "background":
+		material.shader = BACKGROUND_HARMONY
+		material.set_shader_parameter("saturation",PROFILE.background_saturation)
+		material.set_shader_parameter("contrast",PROFILE.background_contrast)
+		material.set_shader_parameter("ground_saturation",PROFILE.ground_saturation)
+		material.set_shader_parameter("ground_contrast",PROFILE.ground_contrast)
+		material.set_shader_parameter("haze_color",PROFILE.distance_haze)
+		material.set_shader_parameter("haze_strength",PROFILE.distance_haze_strength)
+	elif kind == "dust":
+		material.shader = DUST_HARMONY
+		material.set_shader_parameter("dust_color",PROFILE.dust_color)
+	else:
+		material.shader = MATERIAL_HARMONY
+		material.set_shader_parameter("saturation",PROFILE.material_saturation)
+		material.set_shader_parameter("contrast",PROFILE.material_contrast)
+		material.set_shader_parameter("sunlight",PROFILE.sunlight)
+		material.set_shader_parameter("frame_color",PROFILE.window_frame)
+		material.set_shader_parameter("block_surface",kind in ["stone","glass","granite"])
+		material.set_shader_parameter("glass_surface",kind == "glass")
+		if kind == "granite" or kind == "granite_shard":
+			material.set_shader_parameter("detail_strength",PROFILE.granite_detail_strength)
+			material.set_shader_parameter("surface_base",PROFILE.granite_base)
+	_scene_materials[kind] = material
+	return material
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -44,14 +78,23 @@ func _skin(node: Variant) -> void:
 	# 大范围拆除可能在延迟回调前释放 UI，先检查引用再检查类型。
 	if not is_instance_valid(node) or not node is Control:
 		return
+	if node.has_meta("workshop_chrome"):
+		return
 	node.theme = THEME
-	if node is Button and not node.text.is_empty():
+	if node is Button and not node.text.is_empty() and not node.has_meta("keep_ui_style"):
 		for state in ["normal", "hover", "pressed", "disabled", "focus"]:
 			node.remove_theme_stylebox_override(state)
 		for state in ["font_color", "font_hover_color", "font_pressed_color"]:
 			node.remove_theme_color_override(state)
-	elif node is PanelContainer:
+	elif node is PanelContainer or node is Panel:
 		node.remove_theme_stylebox_override("panel")
+	if (node is BaseButton and not node.text.is_empty()) or node is PanelContainer or node is Panel:
+		if not node.has_node("_WorkshopChrome"):
+			var chrome := Control.new()
+			chrome.name = "_WorkshopChrome"
+			chrome.set_meta("workshop_chrome",true)
+			chrome.set_script(WORKSHOP_CHROME)
+			node.add_child(chrome)
 
 func _on_node_removed(node: Node) -> void:
 	if node.has_meta("presentation_budget"):
@@ -131,38 +174,60 @@ func gold_popup(at: Vector2, amount: int) -> void:
 	)
 
 func icon(name: String) -> Texture2D:
-	return load("res://assets/presentation/icons/" + name + ".png")
+	var path := "res://assets/presentation/icons/" + name
+	return load(path + (".svg" if ResourceLoader.exists(path+".svg") else ".png"))
 
-func bind_dialog(frame: Control, design_size: Vector2, scroll: bool = true) -> void:
+func bind_dialog(frame: Control, design_size: Vector2, _scroll: bool = true) -> void:
+	frame.set_meta("workshop_frame",true)
+	# Keep design coordinates stable for fixed layouts; containers fill the design canvas.
 	var recenter := func() -> void:
 		if not is_instance_valid(frame):
 			return
 		var viewport := frame.get_viewport_rect().size
-		frame.size = Vector2(minf(design_size.x, viewport.x - 64), minf(design_size.y, viewport.y - 64))
-		frame.position = (viewport - frame.size) / 2.0
-	frame.get_viewport().size_changed.connect(recenter)
+		var entrance: Tween = frame.get_meta("workshop_entry") if frame.has_meta("workshop_entry") else null
+		if entrance and entrance.is_valid():
+			entrance.kill()
+		var factor := minf(1.0, minf((viewport.x-64)/design_size.x, (viewport.y-64)/design_size.y))
+		frame.size = design_size
+		frame.scale = Vector2.ONE * factor
+		frame.position = (viewport-design_size*factor)/2.0
+	var viewport := frame.get_viewport()
+	viewport.size_changed.connect(recenter)
+	frame.tree_exiting.connect(func() -> void:
+		if viewport.size_changed.is_connected(recenter):
+			viewport.size_changed.disconnect(recenter))
 	recenter.call()
-	if scroll:
-		var panel := frame.get_child(0) as PanelContainer
-		if panel and panel.get_child_count() > 0:
-			var body := panel.get_child(0) as Control
-			panel.remove_child(body)
-			var scroller := ScrollContainer.new()
-			scroller.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-			scroller.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-			scroller.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			scroller.size_flags_vertical = Control.SIZE_EXPAND_FILL
-			panel.add_child(scroller)
-			body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			scroller.add_child(body)
+
+func screen_rect(control: Control) -> Rect2:
+	return control.get_global_transform_with_canvas() * Rect2(Vector2.ZERO, control.size)
+
 
 func dialog_enter(dialog: Control) -> void:
+	var previous: Tween = dialog.get_meta("workshop_fade") if dialog.has_meta("workshop_fade") else null
+	if previous and previous.is_valid():
+		previous.kill()
 	dialog.show()
 	dialog.modulate = Color.WHITE
 	if reduced_motion:
 		return
 	dialog.modulate.a = 0.0
-	dialog.create_tween().tween_property(dialog, "modulate:a", 1.0, PROFILE.enter_seconds)
+	var tween := dialog.create_tween()
+	dialog.set_meta("workshop_fade",tween)
+	tween.tween_property(dialog,"modulate:a",1.0,0.2)
+	for frame in dialog.find_children("*","Control",true,false):
+		if frame.has_meta("workshop_frame"):
+			var last: Tween = frame.get_meta("workshop_entry") if frame.has_meta("workshop_entry") else null
+			if last and last.is_valid():
+				last.kill()
+			var rest: Vector2 = (frame.get_viewport_rect().size-frame.size*frame.scale)/2
+			frame.position = rest+Vector2(0,20)
+			var entry := frame.create_tween()
+			frame.set_meta("workshop_entry",entry)
+			entry.tween_property(frame,"position",rest,0.28).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
+
+func flash_control(control: Control) -> void:
+	for chrome in control.find_children("_WorkshopChrome","Control",true,false):
+		chrome.flash()
 
 func celebrate_rebirth() -> void:
 	SoundManager.play("upgrade")

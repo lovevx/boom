@@ -12,6 +12,7 @@ const C_BTN_BG := Color(0.22, 0.26, 0.36, 1)
 const C_BTN_SEL := Color(0.55, 0.4, 0.15, 1)
 const C_BTN_HOVER := Color(0.3, 0.34, 0.46, 1)
 
+var _paused_before_open := false
 var _shake_slider: HSlider
 var _motion_checkbox: CheckBox
 var _density_select: OptionButton
@@ -23,6 +24,7 @@ var _bgm_btns: Array[Button] = []
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build()
 	SoundManager.settings_changed.connect(_refresh)
 	Presentation.settings_changed.connect(_refresh)
@@ -32,12 +34,17 @@ func _ready() -> void:
 # —— 打开 / 关闭 ——
 
 func open() -> void:
+	if visible:
+		return
+	_paused_before_open = get_tree().paused
+	get_tree().paused = true
 	_refresh()
 	Presentation.dialog_enter(self)
 
 
 func close() -> void:
 	hide()
+	get_tree().paused = _paused_before_open
 
 
 # —— 界面搭建（全部代码构建，风格对齐 ReincarnationPanel） ——
@@ -56,7 +63,7 @@ func _build() -> void:
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(dim)
 
-	var panel_size := Vector2(760, 790)
+	var panel_size := Vector2(800, 840)
 	var scr := get_viewport_rect().size
 	var root := Control.new()
 	root.position = (scr - panel_size) / 2.0
@@ -116,6 +123,7 @@ func _build() -> void:
 	for i in SoundManager.BGM_NAMES.size():
 		var b := Button.new()
 		b.text = SoundManager.BGM_NAMES[i]
+		b.set_meta("keep_ui_style",true)
 		b.custom_minimum_size = Vector2(150, 54)
 		b.add_theme_font_size_override("font_size", 22)
 		b.add_theme_color_override("font_color", C_TEXT)
@@ -237,10 +245,10 @@ func _refresh() -> void:
 	_sfx_pct.text = "%d%%" % roundi(SoundManager.sfx_volume * 100.0)
 	for i in _bgm_btns.size():
 		var selected := i == SoundManager.bgm_index
-		var sn := Presentation.THEME.get_stylebox("normal", "Button").duplicate() as StyleBoxFlat
-		sn.bg_color = Presentation.PROFILE.panel_light if selected else Presentation.PROFILE.panel
-		sn.border_color = Presentation.PROFILE.gold if selected else Color("#4d7899")
-		_bgm_btns[i].add_theme_stylebox_override("normal", sn)
+		for state in ["normal","hover","pressed","focus"]:
+			_bgm_btns[i].remove_theme_stylebox_override(state)
+		_bgm_btns[i].theme_type_variation = &"AccentButton" if selected else &"Button"
+
 
 
 func _build_presentation_settings(parent: VBoxContainer) -> void:

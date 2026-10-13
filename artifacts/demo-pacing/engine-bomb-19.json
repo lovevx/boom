@@ -1,0 +1,1323 @@
+{
+	"completed": true,
+	"eligible_seconds": 1441.4,
+	"longest_progress_gap": 65.4499999999405,
+	"milestones": {
+		"first_cannon": 72.0999999999972,
+		"first_upgrade": 12.0166666666668,
+		"phase_0_mechanic_available": 168.2,
+		"phase_1_mechanic_available": 120.2,
+		"phase_2_mechanic_available": 156.2,
+		"phase_3_mechanic_available": 72.1
+	},
+	"parameters": {
+		"bomb_damage": [
+			10,
+			14,
+			19,
+			25,
+			34,
+			46
+		],
+		"finale_gold": 1000000,
+		"rebirth_targets": [
+			4000,
+			9000,
+			30000
+		],
+		"scatter_cost": 200,
+		"scatter_radius_prerequisite": 1
+	},
+	"permanent": {
+		"ammo_enhance": 3,
+		"blast_range": 1,
+		"turret_base_damage": 2
+	},
+	"phases": [
+		{
+			"blocks": 724,
+			"gold": 4063,
+			"levels": {
+				"aftershock": 0,
+				"barrage": 0,
+				"blast_floor": 1,
+				"bomb_damage": 2,
+				"bomb_launcher": 1,
+				"bomb_radius": 2,
+				"bomb_rate": 1,
+				"building_drop_speed": 2,
+				"chain": 0,
+				"coin_base": 2,
+				"coin_multiplier": 2,
+				"combo": 1,
+				"contract": 1,
+				"crit_chance": 0,
+				"crit_mult": 0,
+				"discount": 0,
+				"execute": 0,
+				"falling_damage": 0,
+				"hammer_damage": 3,
+				"hammer_range": 2,
+				"hammer_speed": 3,
+				"power_strike": 0,
+				"salvage": 1,
+				"scatter": 0
+			},
+			"longest_progress_gap": 48.1,
+			"phase": 0,
+			"seconds": 407.4
+		},
+		{
+			"blocks": 1290,
+			"gold": 9179,
+			"levels": {
+				"aftershock": 0,
+				"barrage": 1,
+				"blast_floor": 2,
+				"bomb_damage": 2,
+				"bomb_launcher": 2,
+				"bomb_radius": 2,
+				"bomb_rate": 1,
+				"building_drop_speed": 2,
+				"chain": 0,
+				"coin_base": 2,
+				"coin_multiplier": 2,
+				"combo": 2,
+				"contract": 2,
+				"crit_chance": 1,
+				"crit_mult": 1,
+				"discount": 1,
+				"execute": 1,
+				"falling_damage": 0,
+				"hammer_damage": 3,
+				"hammer_range": 2,
+				"hammer_speed": 3,
+				"power_strike": 1,
+				"salvage": 2,
+				"scatter": 0
+			},
+			"longest_progress_gap": 24.0,
+			"phase": 1,
+			"seconds": 371.0
+		},
+		{
+			"blocks": 2732,
+			"gold": 30145,
+			"levels": {
+				"aftershock": 1,
+				"barrage": 2,
+				"blast_floor": 2,
+				"bomb_damage": 3,
+				"bomb_launcher": 2,
+				"bomb_radius": 3,
+				"bomb_rate": 2,
+				"building_drop_speed": 3,
+				"chain": 2,
+				"coin_base": 3,
+				"coin_multiplier": 3,
+				"combo": 2,
+				"contract": 2,
+				"crit_chance": 2,
+				"crit_mult": 2,
+				"discount": 2,
+				"execute": 2,
+				"falling_damage": 2,
+				"hammer_damage": 3,
+				"hammer_range": 3,
+				"hammer_speed": 3,
+				"power_strike": 2,
+				"salvage": 2,
+				"scatter": 0
+			},
+			"longest_progress_gap": 24.0,
+			"phase": 2,
+			"seconds": 357.1
+		},
+		{
+			"blocks": 37966,
+			"gold": 1003309,
+			"levels": {
+				"aftershock": 3,
+				"barrage": 3,
+				"blast_floor": 3,
+				"bomb_damage": 5,
+				"bomb_launcher": 4,
+				"bomb_radius": 5,
+				"bomb_rate": 3,
+				"building_drop_speed": 3,
+				"chain": 3,
+				"coin_base": 5,
+				"coin_multiplier": 5,
+				"combo": 3,
+				"contract": 3,
+				"crit_chance": 3,
+				"crit_mult": 3,
+				"discount": 3,
+				"execute": 3,
+				"falling_damage": 3,
+				"hammer_damage": 3,
+				"hammer_range": 5,
+				"hammer_speed": 3,
+				"power_strike": 3,
+				"salvage": 3,
+				"scatter": 3
+			},
+			"longest_progress_gap": 65.4,
+			"phase": 3,
+			"seconds": 305.8
+		}
+	],
+	"purchases": [
+		{
+			"level": 1,
+			"node": "hammer_damage",
+			"phase": 0,
+			"time": 12.0
+		},
+		{
+			"level": 1,
+			"node": "hammer_speed",
+			"phase": 0,
+			"time": 24.0
+		},
+		{
+			"level": 1,
+			"node": "bomb_launcher",
+			"phase": 0,
+			"time": 72.1
+		},
+		{
+			"level": 1,
+			"node": "hammer_range",
+			"phase": 0,
+			"time": 96.1
+		},
+		{
+			"level": 1,
+			"node": "building_drop_speed",
+			"phase": 0,
+			"time": 108.1
+		},
+		{
+			"level": 2,
+			"node": "hammer_damage",
+			"phase": 0,
+			"time": 132.2
+		},
+		{
+			"level": 1,
+			"node": "coin_multiplier",
+			"phase": 0,
+			"time": 144.2
+		},
+		{
+			"level": 1,
+			"node": "bomb_damage",
+			"phase": 0,
+			"time": 168.2
+		},
+		{
+			"level": 1,
+			"node": "coin_base",
+			"phase": 0,
+			"time": 180.2
+		},
+		{
+			"level": 1,
+			"node": "combo",
+			"phase": 0,
+			"time": 192.2
+		},
+		{
+			"level": 2,
+			"node": "hammer_speed",
+			"phase": 0,
+			"time": 204.2
+		},
+		{
+			"level": 1,
+			"node": "bomb_radius",
+			"phase": 0,
+			"time": 216.2
+		},
+		{
+			"level": 1,
+			"node": "blast_floor",
+			"phase": 0,
+			"time": 240.2
+		},
+		{
+			"level": 1,
+			"node": "salvage",
+			"phase": 0,
+			"time": 252.2
+		},
+		{
+			"level": 1,
+			"node": "contract",
+			"phase": 0,
+			"time": 264.2
+		},
+		{
+			"level": 1,
+			"node": "bomb_rate",
+			"phase": 0,
+			"time": 276.2
+		},
+		{
+			"level": 3,
+			"node": "hammer_damage",
+			"phase": 0,
+			"time": 288.2
+		},
+		{
+			"level": 2,
+			"node": "hammer_range",
+			"phase": 0,
+			"time": 312.3
+		},
+		{
+			"level": 2,
+			"node": "building_drop_speed",
+			"phase": 0,
+			"time": 312.3
+		},
+		{
+			"level": 2,
+			"node": "coin_multiplier",
+			"phase": 0,
+			"time": 336.3
+		},
+		{
+			"level": 2,
+			"node": "bomb_damage",
+			"phase": 0,
+			"time": 348.3
+		},
+		{
+			"level": 3,
+			"node": "hammer_speed",
+			"phase": 0,
+			"time": 360.3
+		},
+		{
+			"level": 2,
+			"node": "bomb_radius",
+			"phase": 0,
+			"time": 384.3
+		},
+		{
+			"level": 2,
+			"node": "coin_base",
+			"phase": 0,
+			"time": 396.4
+		},
+		{
+			"level": 1,
+			"node": "hammer_damage",
+			"phase": 1,
+			"time": 434.5
+		},
+		{
+			"level": 1,
+			"node": "hammer_speed",
+			"phase": 1,
+			"time": 446.5
+		},
+		{
+			"level": 1,
+			"node": "hammer_range",
+			"phase": 1,
+			"time": 446.5
+		},
+		{
+			"level": 1,
+			"node": "building_drop_speed",
+			"phase": 1,
+			"time": 458.5
+		},
+		{
+			"level": 2,
+			"node": "hammer_damage",
+			"phase": 1,
+			"time": 470.5
+		},
+		{
+			"level": 1,
+			"node": "coin_multiplier",
+			"phase": 1,
+			"time": 494.6
+		},
+		{
+			"level": 1,
+			"node": "coin_base",
+			"phase": 1,
+			"time": 506.6
+		},
+		{
+			"level": 1,
+			"node": "bomb_damage",
+			"phase": 1,
+			"time": 518.6
+		},
+		{
+			"level": 1,
+			"node": "bomb_radius",
+			"phase": 1,
+			"time": 542.6
+		},
+		{
+			"level": 1,
+			"node": "combo",
+			"phase": 1,
+			"time": 554.6
+		},
+		{
+			"level": 2,
+			"node": "hammer_speed",
+			"phase": 1,
+			"time": 554.6
+		},
+		{
+			"level": 1,
+			"node": "salvage",
+			"phase": 1,
+			"time": 566.7
+		},
+		{
+			"level": 1,
+			"node": "execute",
+			"phase": 1,
+			"time": 578.7
+		},
+		{
+			"level": 1,
+			"node": "blast_floor",
+			"phase": 1,
+			"time": 590.7
+		},
+		{
+			"level": 1,
+			"node": "contract",
+			"phase": 1,
+			"time": 602.7
+		},
+		{
+			"level": 1,
+			"node": "bomb_rate",
+			"phase": 1,
+			"time": 614.7
+		},
+		{
+			"level": 1,
+			"node": "power_strike",
+			"phase": 1,
+			"time": 626.7
+		},
+		{
+			"level": 3,
+			"node": "hammer_damage",
+			"phase": 1,
+			"time": 638.8
+		},
+		{
+			"level": 1,
+			"node": "barrage",
+			"phase": 1,
+			"time": 650.8
+		},
+		{
+			"level": 2,
+			"node": "hammer_range",
+			"phase": 1,
+			"time": 662.8
+		},
+		{
+			"level": 1,
+			"node": "discount",
+			"phase": 1,
+			"time": 662.8
+		},
+		{
+			"level": 2,
+			"node": "building_drop_speed",
+			"phase": 1,
+			"time": 674.8
+		},
+		{
+			"level": 1,
+			"node": "crit_chance",
+			"phase": 1,
+			"time": 686.8
+		},
+		{
+			"level": 2,
+			"node": "coin_multiplier",
+			"phase": 1,
+			"time": 698.8
+		},
+		{
+			"level": 3,
+			"node": "hammer_speed",
+			"phase": 1,
+			"time": 698.8
+		},
+		{
+			"level": 2,
+			"node": "coin_base",
+			"phase": 1,
+			"time": 710.9
+		},
+		{
+			"level": 2,
+			"node": "bomb_damage",
+			"phase": 1,
+			"time": 722.9
+		},
+		{
+			"level": 2,
+			"node": "bomb_radius",
+			"phase": 1,
+			"time": 734.9
+		},
+		{
+			"level": 1,
+			"node": "crit_mult",
+			"phase": 1,
+			"time": 734.9
+		},
+		{
+			"level": 2,
+			"node": "blast_floor",
+			"phase": 1,
+			"time": 758.9
+		},
+		{
+			"level": 2,
+			"node": "combo",
+			"phase": 1,
+			"time": 758.9
+		},
+		{
+			"level": 2,
+			"node": "bomb_launcher",
+			"phase": 1,
+			"time": 770.9
+		},
+		{
+			"level": 2,
+			"node": "salvage",
+			"phase": 1,
+			"time": 783.0
+		},
+		{
+			"level": 2,
+			"node": "contract",
+			"phase": 1,
+			"time": 783.0
+		},
+		{
+			"level": 1,
+			"node": "hammer_damage",
+			"phase": 2,
+			"time": 820.5
+		},
+		{
+			"level": 1,
+			"node": "hammer_speed",
+			"phase": 2,
+			"time": 820.5
+		},
+		{
+			"level": 1,
+			"node": "hammer_range",
+			"phase": 2,
+			"time": 832.5
+		},
+		{
+			"level": 1,
+			"node": "building_drop_speed",
+			"phase": 2,
+			"time": 844.6
+		},
+		{
+			"level": 2,
+			"node": "hammer_damage",
+			"phase": 2,
+			"time": 856.6
+		},
+		{
+			"level": 1,
+			"node": "coin_multiplier",
+			"phase": 2,
+			"time": 868.6
+		},
+		{
+			"level": 1,
+			"node": "coin_base",
+			"phase": 2,
+			"time": 880.6
+		},
+		{
+			"level": 1,
+			"node": "combo",
+			"phase": 2,
+			"time": 892.6
+		},
+		{
+			"level": 1,
+			"node": "bomb_damage",
+			"phase": 2,
+			"time": 904.6
+		},
+		{
+			"level": 1,
+			"node": "bomb_radius",
+			"phase": 2,
+			"time": 928.7
+		},
+		{
+			"level": 2,
+			"node": "hammer_speed",
+			"phase": 2,
+			"time": 928.7
+		},
+		{
+			"level": 1,
+			"node": "blast_floor",
+			"phase": 2,
+			"time": 940.7
+		},
+		{
+			"level": 1,
+			"node": "salvage",
+			"phase": 2,
+			"time": 952.7
+		},
+		{
+			"level": 1,
+			"node": "execute",
+			"phase": 2,
+			"time": 964.7
+		},
+		{
+			"level": 1,
+			"node": "contract",
+			"phase": 2,
+			"time": 964.7
+		},
+		{
+			"level": 1,
+			"node": "bomb_rate",
+			"phase": 2,
+			"time": 976.7
+		},
+		{
+			"level": 1,
+			"node": "barrage",
+			"phase": 2,
+			"time": 988.8
+		},
+		{
+			"level": 1,
+			"node": "power_strike",
+			"phase": 2,
+			"time": 1000.8
+		},
+		{
+			"level": 3,
+			"node": "hammer_damage",
+			"phase": 2,
+			"time": 1000.8
+		},
+		{
+			"level": 2,
+			"node": "hammer_range",
+			"phase": 2,
+			"time": 1012.8
+		},
+		{
+			"level": 2,
+			"node": "building_drop_speed",
+			"phase": 2,
+			"time": 1012.8
+		},
+		{
+			"level": 1,
+			"node": "discount",
+			"phase": 2,
+			"time": 1024.8
+		},
+		{
+			"level": 1,
+			"node": "falling_damage",
+			"phase": 2,
+			"time": 1036.8
+		},
+		{
+			"level": 1,
+			"node": "crit_chance",
+			"phase": 2,
+			"time": 1048.8
+		},
+		{
+			"level": 2,
+			"node": "coin_multiplier",
+			"phase": 2,
+			"time": 1048.8
+		},
+		{
+			"level": 2,
+			"node": "bomb_damage",
+			"phase": 2,
+			"time": 1060.9
+		},
+		{
+			"level": 1,
+			"node": "chain",
+			"phase": 2,
+			"time": 1072.9
+		},
+		{
+			"level": 3,
+			"node": "hammer_speed",
+			"phase": 2,
+			"time": 1072.9
+		},
+		{
+			"level": 1,
+			"node": "aftershock",
+			"phase": 2,
+			"time": 1084.9
+		},
+		{
+			"level": 2,
+			"node": "bomb_radius",
+			"phase": 2,
+			"time": 1084.9
+		},
+		{
+			"level": 2,
+			"node": "coin_base",
+			"phase": 2,
+			"time": 1096.9
+		},
+		{
+			"level": 1,
+			"node": "crit_mult",
+			"phase": 2,
+			"time": 1096.9
+		},
+		{
+			"level": 2,
+			"node": "blast_floor",
+			"phase": 2,
+			"time": 1096.9
+		},
+		{
+			"level": 2,
+			"node": "combo",
+			"phase": 2,
+			"time": 1108.9
+		},
+		{
+			"level": 2,
+			"node": "bomb_launcher",
+			"phase": 2,
+			"time": 1108.9
+		},
+		{
+			"level": 2,
+			"node": "salvage",
+			"phase": 2,
+			"time": 1120.9
+		},
+		{
+			"level": 2,
+			"node": "contract",
+			"phase": 2,
+			"time": 1120.9
+		},
+		{
+			"level": 3,
+			"node": "hammer_range",
+			"phase": 2,
+			"time": 1120.9
+		},
+		{
+			"level": 2,
+			"node": "bomb_rate",
+			"phase": 2,
+			"time": 1120.9
+		},
+		{
+			"level": 2,
+			"node": "execute",
+			"phase": 2,
+			"time": 1120.9
+		},
+		{
+			"level": 3,
+			"node": "building_drop_speed",
+			"phase": 2,
+			"time": 1133.0
+		},
+		{
+			"level": 2,
+			"node": "barrage",
+			"phase": 2,
+			"time": 1133.0
+		},
+		{
+			"level": 2,
+			"node": "power_strike",
+			"phase": 2,
+			"time": 1133.0
+		},
+		{
+			"level": 3,
+			"node": "coin_multiplier",
+			"phase": 2,
+			"time": 1133.0
+		},
+		{
+			"level": 3,
+			"node": "bomb_damage",
+			"phase": 2,
+			"time": 1145.0
+		},
+		{
+			"level": 2,
+			"node": "discount",
+			"phase": 2,
+			"time": 1145.0
+		},
+		{
+			"level": 2,
+			"node": "crit_chance",
+			"phase": 2,
+			"time": 1145.0
+		},
+		{
+			"level": 3,
+			"node": "coin_base",
+			"phase": 2,
+			"time": 1145.0
+		},
+		{
+			"level": 2,
+			"node": "falling_damage",
+			"phase": 2,
+			"time": 1157.0
+		},
+		{
+			"level": 3,
+			"node": "bomb_radius",
+			"phase": 2,
+			"time": 1157.0
+		},
+		{
+			"level": 2,
+			"node": "chain",
+			"phase": 2,
+			"time": 1157.0
+		},
+		{
+			"level": 2,
+			"node": "crit_mult",
+			"phase": 2,
+			"time": 1157.0
+		},
+		{
+			"level": 1,
+			"node": "hammer_damage",
+			"phase": 3,
+			"time": 1192.7
+		},
+		{
+			"level": 1,
+			"node": "hammer_speed",
+			"phase": 3,
+			"time": 1192.7
+		},
+		{
+			"level": 1,
+			"node": "hammer_range",
+			"phase": 3,
+			"time": 1192.7
+		},
+		{
+			"level": 1,
+			"node": "building_drop_speed",
+			"phase": 3,
+			"time": 1204.7
+		},
+		{
+			"level": 2,
+			"node": "hammer_damage",
+			"phase": 3,
+			"time": 1204.7
+		},
+		{
+			"level": 1,
+			"node": "bomb_damage",
+			"phase": 3,
+			"time": 1216.7
+		},
+		{
+			"level": 1,
+			"node": "coin_multiplier",
+			"phase": 3,
+			"time": 1228.7
+		},
+		{
+			"level": 1,
+			"node": "coin_base",
+			"phase": 3,
+			"time": 1228.7
+		},
+		{
+			"level": 1,
+			"node": "bomb_radius",
+			"phase": 3,
+			"time": 1240.7
+		},
+		{
+			"level": 1,
+			"node": "combo",
+			"phase": 3,
+			"time": 1240.7
+		},
+		{
+			"level": 1,
+			"node": "scatter",
+			"phase": 3,
+			"time": 1252.8
+		},
+		{
+			"level": 2,
+			"node": "hammer_speed",
+			"phase": 3,
+			"time": 1252.8
+		},
+		{
+			"level": 1,
+			"node": "blast_floor",
+			"phase": 3,
+			"time": 1264.8
+		},
+		{
+			"level": 1,
+			"node": "salvage",
+			"phase": 3,
+			"time": 1264.8
+		},
+		{
+			"level": 1,
+			"node": "execute",
+			"phase": 3,
+			"time": 1264.8
+		},
+		{
+			"level": 1,
+			"node": "bomb_rate",
+			"phase": 3,
+			"time": 1276.8
+		},
+		{
+			"level": 1,
+			"node": "contract",
+			"phase": 3,
+			"time": 1276.8
+		},
+		{
+			"level": 1,
+			"node": "barrage",
+			"phase": 3,
+			"time": 1276.8
+		},
+		{
+			"level": 1,
+			"node": "power_strike",
+			"phase": 3,
+			"time": 1276.8
+		},
+		{
+			"level": 3,
+			"node": "hammer_damage",
+			"phase": 3,
+			"time": 1288.8
+		},
+		{
+			"level": 2,
+			"node": "hammer_range",
+			"phase": 3,
+			"time": 1288.8
+		},
+		{
+			"level": 1,
+			"node": "discount",
+			"phase": 3,
+			"time": 1288.8
+		},
+		{
+			"level": 1,
+			"node": "falling_damage",
+			"phase": 3,
+			"time": 1288.8
+		},
+		{
+			"level": 2,
+			"node": "building_drop_speed",
+			"phase": 3,
+			"time": 1288.8
+		},
+		{
+			"level": 1,
+			"node": "crit_chance",
+			"phase": 3,
+			"time": 1300.8
+		},
+		{
+			"level": 2,
+			"node": "coin_multiplier",
+			"phase": 3,
+			"time": 1300.8
+		},
+		{
+			"level": 3,
+			"node": "hammer_speed",
+			"phase": 3,
+			"time": 1300.8
+		},
+		{
+			"level": 2,
+			"node": "bomb_damage",
+			"phase": 3,
+			"time": 1312.8
+		},
+		{
+			"level": 1,
+			"node": "chain",
+			"phase": 3,
+			"time": 1312.8
+		},
+		{
+			"level": 1,
+			"node": "aftershock",
+			"phase": 3,
+			"time": 1312.8
+		},
+		{
+			"level": 2,
+			"node": "bomb_radius",
+			"phase": 3,
+			"time": 1312.8
+		},
+		{
+			"level": 2,
+			"node": "coin_base",
+			"phase": 3,
+			"time": 1324.9
+		},
+		{
+			"level": 1,
+			"node": "crit_mult",
+			"phase": 3,
+			"time": 1324.9
+		},
+		{
+			"level": 2,
+			"node": "blast_floor",
+			"phase": 3,
+			"time": 1324.9
+		},
+		{
+			"level": 2,
+			"node": "combo",
+			"phase": 3,
+			"time": 1324.9
+		},
+		{
+			"level": 2,
+			"node": "salvage",
+			"phase": 3,
+			"time": 1324.9
+		},
+		{
+			"level": 2,
+			"node": "contract",
+			"phase": 3,
+			"time": 1324.9
+		},
+		{
+			"level": 3,
+			"node": "hammer_range",
+			"phase": 3,
+			"time": 1324.9
+		},
+		{
+			"level": 2,
+			"node": "bomb_rate",
+			"phase": 3,
+			"time": 1324.9
+		},
+		{
+			"level": 2,
+			"node": "execute",
+			"phase": 3,
+			"time": 1336.9
+		},
+		{
+			"level": 3,
+			"node": "building_drop_speed",
+			"phase": 3,
+			"time": 1336.9
+		},
+		{
+			"level": 2,
+			"node": "barrage",
+			"phase": 3,
+			"time": 1336.9
+		},
+		{
+			"level": 2,
+			"node": "power_strike",
+			"phase": 3,
+			"time": 1336.9
+		},
+		{
+			"level": 3,
+			"node": "coin_multiplier",
+			"phase": 3,
+			"time": 1336.9
+		},
+		{
+			"level": 3,
+			"node": "bomb_damage",
+			"phase": 3,
+			"time": 1336.9
+		},
+		{
+			"level": 2,
+			"node": "discount",
+			"phase": 3,
+			"time": 1348.9
+		},
+		{
+			"level": 2,
+			"node": "crit_chance",
+			"phase": 3,
+			"time": 1348.9
+		},
+		{
+			"level": 3,
+			"node": "coin_base",
+			"phase": 3,
+			"time": 1348.9
+		},
+		{
+			"level": 2,
+			"node": "falling_damage",
+			"phase": 3,
+			"time": 1348.9
+		},
+		{
+			"level": 3,
+			"node": "bomb_radius",
+			"phase": 3,
+			"time": 1348.9
+		},
+		{
+			"level": 2,
+			"node": "crit_mult",
+			"phase": 3,
+			"time": 1348.9
+		},
+		{
+			"level": 2,
+			"node": "chain",
+			"phase": 3,
+			"time": 1360.9
+		},
+		{
+			"level": 3,
+			"node": "blast_floor",
+			"phase": 3,
+			"time": 1360.9
+		},
+		{
+			"level": 2,
+			"node": "aftershock",
+			"phase": 3,
+			"time": 1360.9
+		},
+		{
+			"level": 4,
+			"node": "hammer_range",
+			"phase": 3,
+			"time": 1360.9
+		},
+		{
+			"level": 3,
+			"node": "combo",
+			"phase": 3,
+			"time": 1360.9
+		},
+		{
+			"level": 3,
+			"node": "salvage",
+			"phase": 3,
+			"time": 1372.9
+		},
+		{
+			"level": 3,
+			"node": "contract",
+			"phase": 3,
+			"time": 1372.9
+		},
+		{
+			"level": 3,
+			"node": "bomb_rate",
+			"phase": 3,
+			"time": 1372.9
+		},
+		{
+			"level": 3,
+			"node": "execute",
+			"phase": 3,
+			"time": 1372.9
+		},
+		{
+			"level": 3,
+			"node": "bomb_launcher",
+			"phase": 3,
+			"time": 1372.9
+		},
+		{
+			"level": 3,
+			"node": "barrage",
+			"phase": 3,
+			"time": 1384.9
+		},
+		{
+			"level": 4,
+			"node": "coin_multiplier",
+			"phase": 3,
+			"time": 1384.9
+		},
+		{
+			"level": 3,
+			"node": "power_strike",
+			"phase": 3,
+			"time": 1384.9
+		},
+		{
+			"level": 4,
+			"node": "bomb_damage",
+			"phase": 3,
+			"time": 1384.9
+		},
+		{
+			"level": 3,
+			"node": "crit_chance",
+			"phase": 3,
+			"time": 1384.9
+		},
+		{
+			"level": 3,
+			"node": "discount",
+			"phase": 3,
+			"time": 1384.9
+		},
+		{
+			"level": 4,
+			"node": "coin_base",
+			"phase": 3,
+			"time": 1397.0
+		},
+		{
+			"level": 2,
+			"node": "scatter",
+			"phase": 3,
+			"time": 1397.0
+		},
+		{
+			"level": 4,
+			"node": "bomb_radius",
+			"phase": 3,
+			"time": 1397.0
+		},
+		{
+			"level": 3,
+			"node": "falling_damage",
+			"phase": 3,
+			"time": 1397.0
+		},
+		{
+			"level": 3,
+			"node": "chain",
+			"phase": 3,
+			"time": 1397.0
+		},
+		{
+			"level": 3,
+			"node": "aftershock",
+			"phase": 3,
+			"time": 1409.0
+		},
+		{
+			"level": 3,
+			"node": "crit_mult",
+			"phase": 3,
+			"time": 1409.0
+		},
+		{
+			"level": 5,
+			"node": "hammer_range",
+			"phase": 3,
+			"time": 1409.0
+		},
+		{
+			"level": 5,
+			"node": "coin_multiplier",
+			"phase": 3,
+			"time": 1409.0
+		},
+		{
+			"level": 4,
+			"node": "bomb_launcher",
+			"phase": 3,
+			"time": 1409.0
+		},
+		{
+			"level": 5,
+			"node": "coin_base",
+			"phase": 3,
+			"time": 1409.0
+		},
+		{
+			"level": 5,
+			"node": "bomb_damage",
+			"phase": 3,
+			"time": 1421.0
+		},
+		{
+			"level": 3,
+			"node": "scatter",
+			"phase": 3,
+			"time": 1421.0
+		},
+		{
+			"level": 5,
+			"node": "bomb_radius",
+			"phase": 3,
+			"time": 1421.0
+		}
+	],
+	"route": "bomb",
+	"scatter_volleys": 10,
+	"seconds": 1486.4,
+	"seed": 19,
+	"settings": "reduced_motion=true; low_effects=true; fixed_fps=60; real production physics; simulated 2s+0.6s/purchase menu reading and 15s/rebirth"
+}

@@ -59,70 +59,63 @@ func _on_ui_hover() -> void:
 # —— 选存档覆盖层：开始游戏按钮 + 3 槽位卡片 + 返回 ——
 
 func _build_slot_menu() -> void:
-	var overlay := Control.new()
-	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
-	overlay.name = "SlotMenu"
-	overlay.visible = false
-	add_child(overlay)
-	_slot_menu = overlay
-
-	# 底板：挡住主菜单点击
+	_slot_menu = Control.new()
+	_slot_menu.name = "SlotMenu"
+	_slot_menu.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_slot_menu.hide()
+	add_child(_slot_menu)
 	var dim := ColorRect.new()
-	dim.color = Color(0, 0, 0, 0.66)
-	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
-	dim.mouse_filter = Control.MOUSE_FILTER_STOP
-	overlay.add_child(dim)
-
-	# 标题
+	dim.color = Color(0.02,0.05,0.09,0.78)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_slot_menu.add_child(dim)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_slot_menu.add_child(center)
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(620,0)
+	center.add_child(panel)
+	var body := VBoxContainer.new()
+	body.add_theme_constant_override("separation",18)
+	panel.add_child(body)
+	var header := HBoxContainer.new()
+	body.add_child(header)
 	var title := Label.new()
-	title.position = Vector2(SLOT_X - 40, 372)
-	title.size = Vector2(SLOT_W + 80, 56)
-	title.text = "选择存档"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 40)
-	title.add_theme_color_override("font_color", Color(1, 0.88, 0.4))
-	overlay.add_child(title)
-
-	# 返回按钮
+	title.text = "选择工程存档"
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.add_theme_font_size_override("font_size",32)
+	title.add_theme_color_override("font_color",Presentation.PROFILE.gold)
+	header.add_child(title)
 	var back := Button.new()
-	back.position = Vector2(60, 44)
-	back.size = Vector2(150, 58)
-	back.text = "← 返回"
-	back.add_theme_font_size_override("font_size", 26)
-	back.add_theme_color_override("font_color", Color(1, 0.96, 0.88))
-	back.add_theme_color_override("font_hover_color", Color(1, 0.82, 0.28))
-	var bsb := StyleBoxFlat.new()
-	bsb.bg_color = Color(0.2, 0.24, 0.33, 0.94)
-	bsb.set_corner_radius_all(10)
-	bsb.set_border_width_all(2)
-	bsb.border_color = Color(1, 0.7, 0.35, 0.9)
-	back.add_theme_stylebox_override("normal", bsb)
-	back.add_theme_stylebox_override("hover", bsb)
-	back.add_theme_stylebox_override("pressed", bsb)
-	back.add_theme_stylebox_override("focus", bsb)
+	back.text = "×"
 	back.pressed.connect(_on_slot_menu_back)
-	back.mouse_entered.connect(_on_ui_hover)
-	overlay.add_child(back)
-
-	# 3 张槽位卡片（点击=选中，不做立即进入）
+	header.add_child(back)
+	var hint := Label.new()
+	hint.text = "三个独立工程 · 选择后继续或开始新游戏"
+	hint.add_theme_font_size_override("font_size",18)
+	hint.add_theme_color_override("font_color",Presentation.PROFILE.muted)
+	body.add_child(hint)
 	for i in SLOT_COUNT:
-		var y := SLOT_Y0 + i * SLOT_GAP
 		var btn := Button.new()
-		btn.position = Vector2(SLOT_X, y)
-		btn.size = Vector2(SLOT_W, SLOT_H)
-		btn.add_theme_font_size_override("font_size", 19)
-		btn.add_theme_color_override("font_color", Color(1, 0.96, 0.88))
-		btn.add_theme_color_override("font_hover_color", Color(1, 0.82, 0.28))
+		btn.custom_minimum_size.y = 86
+		btn.add_theme_font_size_override("font_size",20)
+		btn.set_meta("keep_ui_style",true)
 		btn.pressed.connect(_on_slot_selected.bind(i))
 		btn.mouse_entered.connect(_on_ui_hover)
-		overlay.add_child(btn)
+		body.add_child(btn)
 		_slot_btns.append(btn)
-
-	# 底部操作条：选中槽位后出现 ——「确定」（开始/继续）+「删除」
-	_confirm_btn = _action_button(overlay, Vector2(ACT_X, ACT_Y), Vector2(ACT_W, ACT_H), "确定",
-		Color(0.2, 0.55, 0.35), Color(0.28, 0.68, 0.44), _on_confirm_pressed)
-	_del_btn = _action_button(overlay, Vector2(DELFIX_X, ACT_Y), Vector2(DELFIX_W, ACT_H), "删除",
-		Color(0.55, 0.22, 0.2), Color(0.7, 0.3, 0.26), _on_delete_pressed)
+	var actions := HBoxContainer.new()
+	actions.add_theme_constant_override("separation",16)
+	body.add_child(actions)
+	_confirm_btn = Button.new()
+	_confirm_btn.custom_minimum_size.y = 60
+	_confirm_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_confirm_btn.theme_type_variation = &"PrimaryButton"
+	_confirm_btn.pressed.connect(_on_confirm_pressed)
+	actions.add_child(_confirm_btn)
+	_del_btn = Button.new()
+	_del_btn.custom_minimum_size.y = 60
+	_del_btn.pressed.connect(_on_delete_pressed)
+	actions.add_child(_del_btn)
 	_refresh_slot_cards()
 
 
@@ -171,15 +164,11 @@ func _has_save(slot: int) -> bool:
 
 # 槽位卡片选中态样式：边框加亮 + 底色提亮。
 func _apply_selected_style(btn: Button, selected: bool) -> void:
-	var sb := Presentation.THEME.get_stylebox("normal","Button").duplicate() as StyleBoxFlat
-	sb.bg_color = Presentation.PROFILE.panel_light if selected else Presentation.PROFILE.panel
-	sb.border_color = Presentation.PROFILE.gold if selected else Color("#4d7899")
-	var sb_h := sb.duplicate()
-	sb_h.bg_color = Color(0.3, 0.35, 0.46, 0.96)
-	btn.add_theme_stylebox_override("normal", sb)
-	btn.add_theme_stylebox_override("hover", sb_h)
-	btn.add_theme_stylebox_override("pressed", sb_h)
-	btn.add_theme_stylebox_override("focus", sb)
+	for state in ["normal","hover","pressed","focus"]:
+		btn.remove_theme_stylebox_override(state)
+	btn.theme_type_variation = &"PrimaryButton" if selected else &"Button"
+	for state in ["font_color","font_hover_color","font_pressed_color"]:
+		btn.remove_theme_color_override(state)
 
 
 func _slot_label(i: int, info: Dictionary) -> String:
@@ -197,6 +186,7 @@ func _on_start_pressed() -> void:
 	_selected_slot = -1
 	_refresh_slot_cards()
 	_slot_menu.visible = true
+	Presentation.dialog_enter(_slot_menu)
 
 
 func _on_slot_menu_back() -> void:
@@ -292,10 +282,13 @@ func _on_stats_pressed() -> void:
 	$StatsPanel.call("open")
 
 var _brand_root: Control
+var _logo_node: TextureRect
+var _menu_time := 0.0
 
 func _build_presentation_menu() -> void:
 	$Bg.texture = preload("res://assets/presentation/yard.png")
 	$Bg.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	$Bg.material = Presentation.scene_material("background")
 	$Bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	$MenuArt.hide()
 	_brand_root = Control.new()
@@ -309,6 +302,7 @@ func _build_presentation_menu() -> void:
 	panel.add_theme_stylebox_override("panel", Presentation.THEME.get_stylebox("panel","PanelContainer"))
 	_brand_root.add_child(panel)
 	var logo := TextureRect.new()
+	_logo_node = logo
 	logo.texture = preload("res://assets/presentation/logo.png")
 	logo.position = Vector2(540,160)
 	logo.size = Vector2(840,200)
@@ -333,21 +327,29 @@ func _build_presentation_menu() -> void:
 		button.add_theme_font_size_override("font_size",28 if index==0 else 24)
 		if index == 0:
 			button.theme_type_variation = &"PrimaryButton"
-		button.icon = Presentation.icon(["hammer","building","gear","lock"][index])
+		button.icon = Presentation.icon(["hammer","help","gear","exit"][index])
 		button.add_theme_constant_override("icon_max_width",32)
 	_brand_root.move_to_front()
 	# Modal overlays must be above the new brand root.
 	for name in ["SlotMenu","HowTo","SettingsPanel","StatsPanel"]:
 		get_node(name).move_to_front()
+	Presentation.bind_dialog(_brand_root,Vector2(1920,1080),false)
 	get_viewport().size_changed.connect(_layout_presentation_menu)
 	_layout_presentation_menu()
+	if not Presentation.reduced_motion:
+		for index in 4:
+			var button: Button = _brand_root.get_node(["StartButton","HowButton","SettingsButton","QuitButton"][index])
+			button.modulate.a = 0.0
+			var reveal := button.create_tween()
+			reveal.tween_interval(index*0.06)
+			reveal.tween_property(button,"modulate:a",1.0,0.24)
+
+func _process(delta: float) -> void:
+	if is_instance_valid(_logo_node):
+		_menu_time += delta
+		_logo_node.position.y = 160.0 if Presentation.reduced_motion else 160.0+sin(_menu_time*0.9)*3.0
 
 func _layout_presentation_menu() -> void:
 	var viewport := get_viewport().get_visible_rect().size
-	_brand_root.position.x = (viewport.x-1920)/2.0
-	for control in _slot_menu.get_children():
-		if control is Control and not (control is ColorRect):
-			if not control.has_meta("design_x"):
-				control.set_meta("design_x",control.position.x)
-			control.position.x = float(control.get_meta("design_x")) + (viewport.x-1920)/2.0
-	$CareerButton.position.y = viewport.y - 116
+	$CareerButton.position = Vector2(24,viewport.y-88)
+	$CareerButton.icon = Presentation.icon("chart")

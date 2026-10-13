@@ -1,4 +1,4 @@
-> 2026-10-09 数值版本更新：技能费用、转生收益、永久节点与前置关系以 [Numeric_Balance.md](Numeric_Balance.md)、[SkillTree.md](SkillTree.md)、[Reincarnation.md](Reincarnation.md) 为准；本文未同步的旧数值属于历史规格。
+> 2026-10-13 数值版本更新：完整 Demo 目标 20–30 分钟，当前节奏和验收以 [Demo_Pacing.md](Demo_Pacing.md) 为准；技能费用、转生收益、永久节点与前置关系以 [Numeric_Balance.md](Numeric_Balance.md)、[SkillTree.md](SkillTree.md)、[Reincarnation.md](Reincarnation.md) 为准；本文未同步的旧数值属于历史规格。
 
 # SPEC.md —— 规格约束
 
@@ -29,10 +29,30 @@
 | 分辨率 | 1920x1080 | 主场景固定，边界清理按此写死 |
 | 平台 / 性能 | Godot 4.7，GL Compatibility，桌面端优先 | 物理用 Jolt |
 | 转生点收益 K（RP_GAIN_K） | 1.0 | 转生点缩放系数，越大每次转生得点越多 |
-| 转生点基准（RP_GAIN_BASE） | 300 000（30 分钟 Demo 值；长线可回退 1 000 000） | 首次转生~18 分钟可获得 1~2 RP；基准越小越早能拿到 RP。见 Numeric_Balance.md |
-| 转生最低收益门槛 | 10 000 | 低于此值转生得 0 RP，不奖励浅转 |
+| 转生点基准（RP_GAIN_BASE） | 1000；K=1；单局上限 8 RP | 达到当轮门槛后按平方根公式结算 |
+| `run_gold_targets` | 默认 [4000, 9000, 30000]；长度 3，正数且递增 | 当前转生次数索引，3 次以后沿用末项；统一驱动结算与提示 |
+| `DemoProgress.finale_gold` | 默认 1000000，必须 >0 | 第三次转生后本轮拆楼产出目标；不使用余额 |
+| `DemoProgress.required_scatter_volleys` | 默认 10，必须 ≥1 | 最终轮实际多发散射轮数；一轮只计一次 |
 
 ## 升级项（升级面板，购买后实时生效）
+
+### 2026-10-09 Demo 新机制边界
+
+新增机制的控制参数集中在 `UpgradeManager` 顶部导出项，永久专精增量集中在 `ReincarnationManager.specialization_steps`。节点费用和等级效果继续采用最新版本的集中表，见 [Demo_Expansion.md](Demo_Expansion.md)。以下为本次测试使用的默认值，修改后需同步文档并重跑成长检查。
+
+| 参数 | 默认 / 边界 | 用途 |
+| --- | --- | --- |
+| `combo_window` / `combo_stack_cap` | 1.5 秒 / 5 层；均必须 >0 | 连续命中计时与上限 |
+| `power_strike_every` / `power_strike_radius` | 每 3 次有效命中 / 额外 40 px；次数必须 ≥1 | 重锤周期与覆盖 |
+| `execute_threshold` | 0.50；与永久加值之和须处于 0～1 | 残血增伤门槛 |
+| `contract_blocks` | 50，必须 ≥1 | 合同结算周期 |
+| `cost_discount_cap` | 0.25，必须 <1 | 单局与永久折扣合并上限；费用向上取整 |
+| `blast_floor_cap` | 0.80，范围 0～1 | 爆炸最低伤害占比上限 |
+| `barrage_rounds` | 4，减永久专精后必须 ≥1 | 每台炮台强化轮周期 |
+| `aftershock_delay` | 0.45 秒，必须 >0 | 只触发一次、不递归的余震 |
+| `specialization_steps` | 容错 0.4 秒 / 重锤 20 px / 残血阈值 0.05 / 回收 1 金币 / 合同 0.25 / 采购 0.05 / 保底 0.05 / 余震范围 0.10 / 重炮周期减 1 | 每级永久专精增量；与同名节点 ID 对应 |
+
+首次转生门槛为产出 4000，后续依次为 9000 / 30000；RP 基准 1000、每局上限 8。炮弹基础伤害表为 10 / 14 / 19 / 25 / 34 / 46，首炮费用 40，首级炮伤 / 范围费用 80 / 100。沿用 12 列 ×30 层与单局可购买 4 台炮台。上文未更新的旧参数及下方旧版基础升级表仅作历史记录，以最新数值文档与管理器集中表为准。
 
 | 升级项 | 初始 | 每级提升 | 上限 | 说明 |
 | --- | --- | --- | --- | --- |
@@ -58,3 +78,50 @@
 - 不做音效（当前 MVP 阶段）
 - 不做除"鼠标点击"以外的其他操作方式（挥锤为点击；炮台/全自动锤为自动触发的例外）
 - 不做手机适配与性能优化
+
+## 2026-10-13 表现优化参数
+
+本轮按表现优化需求补充轻量绘制效果，沿用现有像素素材与粒子预算。以下只影响画面；伤害、金币、冷却、弹道与楼体槽位保持现有规则。配置位于 `PresentationProfile.gd`，资源为 `assets/presentation/profile.tres`。
+
+| 参数 | 默认 / 边界 | 用途 |
+| --- | --- | --- |
+| `blast_seconds` | 0.55 秒，必须 >0 | 爆炸序列结束后保留短暂压力环与火星 |
+| `blast_sparks` | 10，建议 0～16 | 每次爆炸直接绘制的火星数；低特效关闭 |
+| `impact_seconds` | 0.24 秒，必须 >0 | 锤击弧线、火花与定向炮口闪光的生命周期 |
+| `trail_points` | 12，建议 2～16 | 单颗炮弹世界坐标尾迹点数上限；低特效缩至 5 点 |
+| `trail_spacing` | 5 px，必须 >0 | 尾迹采样最小间距 |
+| `dust_drift` | 28 px，建议 0～40 | 扬尘上升距离，兼有横向扩散与淡出 |
+
+锤击和炮口效果共用 `hit_limit=48`；爆炸共用 `blast_limit=8`；粉尘共用 `dust_limit=12`。低特效沿用预算缩减。减少动态效果时隐藏尾迹、冲击环、飞散火花，使用小范围命中提示，降低碎屑速度，并关闭粉尘位移动画。所有新增效果随游戏暂停，并归入 `in_game_entity` 以在重开时清理。碎屑从各自被毁方块位置发射，沿远离攻击来源的方向散开。
+
+## 2026-10-13 场景协调参数
+
+资源入口为 `assets/presentation/profile.tres`；导出项位于 `PresentationProfile` 的 Scene harmony 分组。共享材质在新运行时创建；编辑后重新运行查看。
+
+| 参数 | 默认 / 边界 | 用途 |
+| --- | --- | --- |
+| `background_saturation` / `background_contrast` | 0.75 / 0.85；0～1.5 | 天空、云层、远景降对比 |
+| `distance_haze` / `distance_haze_strength` | `#b2cddd` / 0.10；强度 0～0.5 | 蓝灰远景雾色，不模糊贴图 |
+| `ground_saturation` / `ground_contrast` | 0.90 / 0.94；0～1.5 | 保留地面与近处设备的土黄暖色 |
+| `material_saturation` / `material_contrast` | 0.86 / 0.90；0～1.5 | 楼体、炮台与碎屑共同调色 |
+| `granite_detail_strength` / `granite_base` | 0.35，范围 0～1 / `#a0a7a6` | 花岗岩与其碎屑向统一灰色收敛，降低细碎纹理对比 |
+| `sunlight` / `window_frame` | `#fff0ce` / `#344b5b` | 方块左上受光和窗框色 |
+| `contact_shadow` / `shadow_inner_alpha` / `shadow_outer_alpha` | `#343c40` / 0.28 / 0.12；透明度 0～1 | 4px 内阴影、10px 外阴影；塔脚宽 480px、履带宽 112px |
+| `ground_contact` | `#806247` | 世界 y=1000 地面衔接线 |
+| `flash_color` / `spark_color` / `ember_color` / `dust_color` | `#fff0ce` / `#ffc05b` / `#ed924d` / `#a69b88` | 命中闪光、火花、尾迹与低饱和烟尘 |
+
+无玩法或存档字段变更，维持现有视觉预算。完整美术说明与验证结果见 [Scene_Art_Harmony.md](Scene_Art_Harmony.md)。
+
+## 2026-10-13 楼体体积与立面参数
+
+`PresentationProfile` 的 Building depth 分组控制整栋受光与方块挤出几何；不控制碰撞、生命、奖励或塌落。
+
+| 参数 | 默认 / 边界 | 用途 |
+| --- | --- | --- |
+| `building_depth` | `(40,-16)` px；建议 x=24～48，y=-8～-24，均取偶数 | 右侧窄侧面和后退透视；塔脚投影同源 |
+| `building_side_light` | 0.58；0.3～1 | 外侧墙亮度；内部断面用独立暗色 |
+| `building_front_right_light` | 0.83；0.5～1.2 | 正面由左 1.04 渐变到右侧，形成整栋明暗关系 |
+| `building_interior` | `#293845` | 后壁与内侧断面 |
+| `building_pilaster` / `building_slab_shadow` | `#c7c3b2` / `#56616a` | 连续边柱、中央柱、窗台与楼板下缘 |
+
+正面仍为 480px ×30 层，单块 40×40。窗内实际显示区为 32×32（原生 16×16、2 倍采样）；楼板贴图显示为底部 12px，上部为同档墙材质的窗间墙。真实玻璃重排到两组窗带，初始数量仍为 2～4；补层分布规则详见 [Building_Depth.md](Building_Depth.md)。材质数值和存档格式不变。

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Boomame · 2.5D 楼体对比</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#122432;color:#f3f3df;font:16px system-ui,"Microsoft YaHei",sans-serif}main{max-width:1440px;margin:auto;padding:24px}h1{font-size:24px;margin:0 0 10px}p{color:#b4c8d3;line-height:1.6}header{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin:20px 0}select,button{color:#f3f3df;background:#25425b;border:1px solid #638094;border-radius:5px;padding:9px 12px;font:inherit}button{cursor:pointer}button.active{border-color:#ffc857;color:#ffc857}.stage{position:relative;aspect-ratio:16/9;background:#0b1828;overflow:hidden;border:1px solid #638094}.stage img{position:absolute;width:100%;height:100%;object-fit:contain;image-rendering:pixelated}.stage #after{clip-path:inset(0 0 0 50%)}.line{position:absolute;top:0;bottom:0;left:50%;width:2px;background:#ffc857;pointer-events:none}.badge{position:absolute;top:12px;padding:5px 9px;background:#122432e8;border:1px solid #638094;border-radius:4px}.old{left:12px}.new{right:12px;border-color:#ffc857}.slider{width:100%;accent-color:#ffc857;margin:16px 0}video{width:100%;max-height:70vh;background:#0b1828;margin:16px 0}small{display:block;color:#b4c8d3;line-height:1.7}a{color:#76d6ed}.legend{display:flex;flex-wrap:wrap;gap:24px;margin:12px 0;color:#b4c8d3}.legend b{color:#ffc857}
+</style>
+<main>
+<h1>Boomame · 楼体立体感</h1>
+<p>拖动分界线对比同一场景。右侧窄侧面、整栋受光、固定窗带与薄楼板；断面随真实方块破坏和塌落。</p>
+<header>
+<label>场景 <select id="scene">
+<option value="initial_1920x1080">初始楼体 · 1920×1080</option>
+<option value="initial_1280x720">初始楼体 · 1280×720</option>
+<option value="initial_2560x1440">初始楼体 · 2560×1440</option>
+<option value="initial_3440x1440">超宽屏 · 3440×1440</option>
+<option value="tier_0">材质档位 1</option><option value="tier_1">材质档位 2</option>
+<option value="tier_2">材质档位 3</option><option value="tier_3">材质档位 4</option>
+<option value="mixed_materials">混合材质</option><option value="collapse">楼体塌落</option>
+<option value="four_launchers">四台液压炮</option><option value="bombing">自动轰炸</option>
+<option value="menu">主菜单配色衔接</option>
+</select></label>
+<button data-mode="before">仅优化前</button><button data-mode="split" class="active">拖动对比</button><button data-mode="after">仅优化后</button>
+</header>
+<div class="stage" id="stage"><img id="before" alt="优化前"><img id="after" alt="优化后"><div class="line" id="line"></div><span class="badge old" id="oldBadge">优化前</span><span class="badge new" id="newBadge">优化后</span></div>
+<input class="slider" id="slider" type="range" min="0" max="100" value="50" aria-label="优化前后分界线">
+<div class="legend"><span><b>体积</b> 40px 窄侧面 / 右侧暗部</span><span><b>立面</b> 连续边柱 / 固定窗带</span><span><b>断面</b> 暗色内壁 / 楼板厚度</span></div>
+<small>图像来自 Godot 4.7.2 的实际渲染；没有修改截图的颜色。场景使用相同初始种子；窗位重排改变后续随机序列，纹理细节、HUD 动画和物理抓帧时刻可能略有差异。四炮与材质档位通过独立测试存档加速展示，不代表自然游玩节奏。</small>
+<h2>真实缺口与断面</h2><p>暂停在真实破坏发生后，观察暗色内壁、顶部断面和被拆掉的侧墙；恢复后按原有逐列算法塌落补齐。</p><img src="cutaway.png" alt="真实破坏断面" style="display:block;width:100%;image-rendering:pixelated;border:1px solid #638094"><h2>2.5D 实机演示</h2><video controls preload="metadata" src="building-depth.mp4"></video>
+<small>录像演示锤击、脚本触发的真实局部破坏、塌落补齐、炮台部署与自动轰炸。测试使用独立用户目录，未修改玩家存档。</small>
+</main>
+<script>
+const scene=document.querySelector('#scene'),before=document.querySelector('#before'),after=document.querySelector('#after'),stage=document.querySelector('#stage'),slider=document.querySelector('#slider'),line=document.querySelector('#line');let mode='split';
+function update(){const v=mode==='before'?100:mode==='after'?0:Number(slider.value);after.style.clipPath=`inset(0 0 0 ${v}%)`;line.style.left=v+'%';line.hidden=mode!=='split';slider.disabled=mode!=='split';document.querySelector('#oldBadge').hidden=mode==='after';document.querySelector('#newBadge').hidden=mode==='before';document.querySelectorAll('button[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));}
+function load(){before.src='before/'+scene.value+'.png';after.src='after/'+scene.value+'.png';}
+before.addEventListener('load',()=>stage.style.aspectRatio=before.naturalWidth+'/'+before.naturalHeight);scene.addEventListener('change',load);slider.addEventListener('input',update);document.querySelectorAll('button[data-mode]').forEach(b=>b.addEventListener('click',()=>{mode=b.dataset.mode;update()}));stage.addEventListener('pointerdown',e=>{if(mode!=='split')return;stage.setPointerCapture(e.pointerId);move(e)});stage.addEventListener('pointermove',e=>{if(stage.hasPointerCapture(e.pointerId))move(e)});function move(e){const r=stage.getBoundingClientRect();slider.value=Math.max(0,Math.min(100,(e.clientX-r.left)/r.width*100));update()}load();update();
+</script>
+</html>

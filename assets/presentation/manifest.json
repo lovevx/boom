@@ -1,5 +1,5 @@
 {
-  "generator": "Built-in imagegen; original procedural audio",
+  "generator": "Built-in imagegen; procedural sound effects; original user BGM",
   "seed": 719,
   "runtime_sizes": {
     "materials": [
@@ -21,13 +21,17 @@
   },
   "source_art": {
     "yard": "exec-deefa435-275c-4733-83ae-ce078b04241b.png",
-    "launcher": "exec-638847f8-7af7-4b52-8936-5548c7cabf9b.png",
+    "launcher": "sources/hydraulic/hydraulic_launcher.svg",
     "materials": "exec-3c7d853b-e080-4169-a7c5-6109451234a3.png",
     "icons": "exec-14b8091a-e43d-4b63-abbe-bccbdf6ace39.png",
     "effects": "exec-3cdf2748-2843-4d3c-83ef-060943533829.png",
     "logo": "exec-5b737cfe-2171-40b3-ba1a-06d862e1b328.png"
   },
   "audio_rate": 44100,
-  "music_bpm": 100,
-  "original_assets": "Preserved in assets/ui, assets/launcher, assets/audio, assets/fx"
+  "original_assets": "Preserved in assets/ui, assets/launcher, assets/audio, assets/fx",
+  "launcher_authoring": "Original editable pixel primitives; text-only generated concept; no borrowed sprite input",
+  "bgm_files": [
+    "assets/audio/bgm/BGM1.mp3",
+    "assets/audio/bgm/bgm2.mp3"
+  ]
 }

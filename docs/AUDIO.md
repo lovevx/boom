@@ -1,5 +1,7 @@
 # AUDIO.md —— 音频设计说明
 
+> 2026-10-10：BGM 恢复为原有 `BGM1.mp3` 与 `bgm2.mp3`，保留循环、音量和选曲设置；构建流程不再生成临时 BGM，各平台导出排除临时音乐并包含原曲。
+
 > 本文约定：一个音效放在哪里、由谁触发、命名/目录长什么样、如何接入。
 > 当前 [SoundManager.gd](file:///e:/godotproject/boomame/scripts/SoundManager.gd) 采用**程序合成**兜底，逐步替换为**真实音频文件**；替换时只动 SoundManager，不改各触发点代码。
 

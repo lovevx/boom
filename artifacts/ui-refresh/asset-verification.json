@@ -1,0 +1,9 @@
+{
+  "idle_64x64": true,
+  "attack_33_frames": true,
+  "binary_alpha": true,
+  "transparent_margin": true,
+  "four_editable_layers": true,
+  "source_has_no_raster_embedding": true,
+  "idle_matches_first_frame": true
+}

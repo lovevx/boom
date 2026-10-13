@@ -12,6 +12,19 @@ const RP_GAIN_BASE: int = 1000              # 4000 / 9000 / 16000 产出金币 �
 const RP_GAIN_K: float = 1.0                 # 收益系数（未来调档用，当前 1.0）
 const MIN_RUN_GOLD_FOR_GAIN: int = 4000     # 首次有效转生给 2 RP
 const MAX_RP_PER_RUN: int = 8               # 单局收益上限，保留多次转生的成长目标
+@export var run_gold_targets: Array[int] = [4000, 9000, 30000]
+
+func get_required_run_gold() -> int:
+	return run_gold_targets[mini(total_reincarnations, run_gold_targets.size() - 1)]
+
+@export var specialization_steps := {
+	"combo_memory":0.4, "wave_training":20.0, "execute_training":0.05,
+	"salvage_license":1.0, "contract_license":0.25, "procurement":0.05,
+	"blast_training":0.05, "echo_mastery":0.10, "barrage_training":1.0,
+}
+
+func get_specialization(nid: String, level: int = -1) -> float:
+	return float(specialization_steps.get(nid, 0.0)) * (get_node_level(nid) if level < 0 else level)
 
 signal reincarnation_changed            # RP 余额 / 累计转生次数变化（供转生界面刷新）
 signal permanent_node_changed(node_id: String, level: int)   # 某永久节点点亮（供技能树刷新）
@@ -42,6 +55,15 @@ const NODE_DEFS := {
 	"turret_base_damage": {"name": "炮塔基础伤害", "category": "TURRET", "max_level": 2, "costs": [1, 2],    "kind": "flat"},
 	"ammo_enhance":   {"name": "弹药强化",     "category": "TURRET", "max_level": 3, "costs": [1, 2, 3], "kind": "percent"},
 	"blast_range":    {"name": "爆裂范围",     "category": "TURRET", "max_level": 2, "costs": [1, 2],    "kind": "percent"},
+	"combo_memory": {"name":"作业节奏", "category":"ATTACK", "max_level":2, "costs":[1,2], "kind":"flag", "rebirth":1},
+	"wave_training": {"name":"冲击扩散", "category":"ATTACK", "max_level":2, "costs":[2,3], "kind":"flag", "rebirth":1},
+	"execute_training": {"name":"结构识别", "category":"ATTACK", "max_level":2, "costs":[1,2], "kind":"flag", "rebirth":1},
+	"salvage_license": {"name":"回收执照", "category":"GOLD", "max_level":2, "costs":[1,2], "kind":"flag", "rebirth":1},
+	"contract_license": {"name":"工程承包", "category":"GOLD", "max_level":2, "costs":[2,3], "kind":"flag", "rebirth":1},
+	"procurement": {"name":"供应链", "category":"GOLD", "max_level":2, "costs":[2,3], "kind":"flag", "rebirth":2},
+	"blast_training": {"name":"装药工艺", "category":"TURRET", "max_level":2, "costs":[1,2], "kind":"flag", "rebirth":1},
+	"echo_mastery": {"name":"余震扩散", "category":"TURRET", "max_level":2, "costs":[2,3], "kind":"flag", "rebirth":2},
+	"barrage_training": {"name":"火控同步", "category":"TURRET", "max_level":2, "costs":[3,5], "kind":"flag", "rebirth":3},
 }
 
 # 永久分支：先点基础节点，再沿该方向发展。旧档已购买节点继续保留。
@@ -55,6 +77,15 @@ const NODE_PRE_REQS := {
 	"gravity_accel": {"node": "giant_power", "lvl": 1},
 	"ammo_enhance": {"node": "turret_base_damage", "lvl": 1},
 	"blast_range": {"node": "ammo_enhance", "lvl": 1},
+	"combo_memory": {"node":"base_damage", "lvl":1},
+	"wave_training": {"node":"giant_power", "lvl":1},
+	"execute_training": {"node":"destroy_power", "lvl":1},
+	"salvage_license": {"node":"coin_heart", "lvl":1},
+	"contract_license": {"node":"coin_heart", "lvl":1},
+	"procurement": {"node":"initial_capital", "lvl":1},
+	"blast_training": {"node":"turret_base_damage", "lvl":1},
+	"echo_mastery": {"node":"blast_range", "lvl":1},
+	"barrage_training": {"node":"ammo_enhance", "lvl":1},
 }
 const INITIAL_CAPITAL := [0, 20, 60, 140]
 
@@ -122,7 +153,7 @@ func purchase_node(nid: String) -> bool:
 #   获得 RP = floor( sqrt(本局累计金币 / RP_GAIN_BASE) × K )，且本局累计低于 MIN 得 0。
 
 func collect_total_rp(run_total_gold: int) -> int:
-	if run_total_gold < MIN_RUN_GOLD_FOR_GAIN:
+	if run_total_gold < get_required_run_gold():
 		return 0
 	return mini(MAX_RP_PER_RUN, int(floor(sqrt(float(run_total_gold) / float(RP_GAIN_BASE)) * RP_GAIN_K)))
 
@@ -184,6 +215,8 @@ func apply_permanent_bonuses(grant_capital: bool = true) -> void:
 func get_node_lock_reason(nid: String) -> String:
 	if not NODE_DEFS.has(nid):
 		return "未知节点"
+	if get_node_level(nid) == 0 and total_reincarnations < int(NODE_DEFS[nid].get("rebirth", 0)):
+		return "转生 ≥%d 次开放" % int(NODE_DEFS[nid].rebirth)
 	if get_node_level(nid) > 0 or not NODE_PRE_REQS.has(nid):
 		return ""
 	var pre: Dictionary = NODE_PRE_REQS[nid]
@@ -196,7 +229,7 @@ func get_next_rp_gold(run_gold: int) -> int:
 	if collect_total_rp(run_gold) >= MAX_RP_PER_RUN:
 		return 0
 	var next := collect_total_rp(run_gold) + 1
-	return maxi(MIN_RUN_GOLD_FOR_GAIN, int(ceil(RP_GAIN_BASE * pow(float(next) / RP_GAIN_K, 2))))
+	return maxi(get_required_run_gold(), int(ceil(RP_GAIN_BASE * pow(float(next) / RP_GAIN_K, 2))))
 
 
 func get_milestone_text(count: int) -> String:
@@ -206,6 +239,10 @@ func get_milestone_text(count: int) -> String:
 			parts.append({"crit": "暴击升级", "chain": "连锁升级", "scatter": "散射升级"}[mech])
 	if count in LAUNCHER_COUNT_THRESHOLDS:
 		parts.append("开局自带 %d 台炮台" % (LAUNCHER_COUNT_THRESHOLDS.find(count) + 1))
+	match count:
+		1: parts.append("重锤、裂隙、采购、重炮与 6 项永久专精")
+		2: parts.append("余震、空中解体与供应链 / 余震专精")
+		3: parts.append("火控同步专精")
 	return "、".join(parts) if not parts.is_empty() else "永久成长继续累积"
 
 
@@ -214,6 +251,15 @@ func get_node_effect(nid: String, lv: int) -> String:
 		var title: String = {"coin_heart": "金币产出", "destroy_power": "锤击伤害", "swift_wind": "锤击攻速", "gravity_accel": "建筑下落", "ammo_enhance": "炮弹伤害", "blast_range": "爆炸半径"}[nid]
 		return "%s +%d%%" % [title, roundi(float(PERCENT_POINTS[nid]) * lv * 100.0)]
 	match nid:
+		"combo_memory": return "连续作业断击容错 +%.1f 秒" % get_specialization(nid, lv)
+		"wave_training": return "蓄势重锤额外范围 +%d px" % get_specialization(nid, lv)
+		"execute_training": return "裂隙拆除生命阈值 %d%%" % roundi((UpgradeManager.execute_threshold + get_specialization(nid, lv)) * 100)
+		"salvage_license": return "坍塌回收额外基础金币 +%d" % get_specialization(nid, lv)
+		"contract_license": return "拆除合同报酬 +%d%%" % roundi(get_specialization(nid, lv) * 100)
+		"procurement": return "全部单局节点费用 -%d%%" % roundi(get_specialization(nid, lv) * 100)
+		"blast_training": return "爆炸边缘保底伤害 +%d 百分点" % roundi(get_specialization(nid, lv) * 100)
+		"echo_mastery": return "延时余震半径 +%d%%" % roundi(get_specialization(nid, lv) * 100)
+		"barrage_training": return "齐射重炮每 %d 轮触发一次" % (UpgradeManager.barrage_rounds - int(get_specialization(nid, lv)))
 		"initial_capital": return "开局资金 %d 金币" % INITIAL_CAPITAL[lv]
 		"auto_hammer": return "自动瞄准底层挥砸" if lv > 0 else "尚未开启自动锤"
 		"base_damage": return "锤击基础伤害 +%.1f" % (float(FLAT_POINTS[nid]) * lv)

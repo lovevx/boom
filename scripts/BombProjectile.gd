@@ -27,6 +27,7 @@ var _life := 0.0
 var _exploded := false
 var _spin_speed := 0.0
 var _base_scale := 1.0
+var _trail := PackedVector2Array()
 
 @onready var _sprite: Sprite2D = $Sprite2D
 @onready var _shadow: Sprite2D = $Shadow
@@ -74,6 +75,7 @@ func _physics_process(delta: float) -> void:
 	_sprite.scale = Vector2(_base_scale, _base_scale)
 	_life += delta
 	_update_shadow()
+	_update_trail()
 
 	if _life >= MAX_LIFE:
 		_explode()
@@ -81,6 +83,32 @@ func _physics_process(delta: float) -> void:
 	var g := global_position
 	if g.y > EXPIRE_Y or g.x > 2000.0 or g.x < -60.0:
 		_explode()
+
+func _update_trail() -> void:
+	if Presentation.reduced_motion:
+		_trail.clear()
+	else:
+		if _trail.is_empty() or _trail[-1].distance_to(global_position) >= Presentation.PROFILE.trail_spacing:
+			_trail.append(global_position)
+		var limit: int = 5 if Presentation.low_effects else Presentation.PROFILE.trail_points
+		while _trail.size() > limit:
+			_trail.remove_at(0)
+	queue_redraw()
+
+func _draw() -> void:
+	if Presentation.reduced_motion:
+		return
+	var ember := Presentation.PROFILE.ember_color
+	var flash := Presentation.PROFILE.flash_color
+	for i in range(1, _trail.size()):
+		var strength := float(i) / _trail.size()
+		var start := to_local(_trail[i-1])
+		var end := to_local(_trail[i])
+		ember.a = strength * 0.38
+		flash.a = strength * 0.65
+		draw_line(start, end, ember, 2.0 + strength * 6.0, true)
+		if not Presentation.low_effects:
+			draw_line(start, end, flash, 2.0, true)
 
 
 # 地面投影随高度变化：越高越小越淡，落地附近明显。
@@ -114,6 +142,14 @@ func _explode() -> void:
 	_spawn_explosion_dust()   # 尘土 GIF：爆炸点扬尘
 	GameFeel.impact(3)   # 炸弹是强事件：爆炸自带大震屏 + 短慢动作（不走 BuildingSetup 链式窗口计数）
 	_damage_blocks()
+	var echo_ratio := UpgradeManager.demo_value("aftershock")
+	if echo_ratio > 0.0:
+		var echo := preload("res://scripts/Aftershock.gd").new()
+		echo.position = global_position
+		echo.damage = damage * echo_ratio
+		echo.radius = radius * (1.0 + ReincarnationManager.get_specialization("echo_mastery"))
+		echo.damage_floor = UpgradeManager.get_blast_floor()
+		get_tree().current_scene.add_child(echo)
 	queue_free()
 
 
@@ -166,9 +202,11 @@ func _damage_blocks() -> void:
 			continue
 		seen[hit_body] = true
 		var bb := hit_body as BuildingBlock
+		if bb.hp <= 0.0:
+			continue
 		var dist := global_position.distance_to(bb.global_position)
-		var falloff := clampf(1.0 - dist / maxf(radius, 0.001), 0.3, 1.0)
-		var dmg := base_dmg * falloff
+		var falloff := clampf(1.0 - dist / maxf(radius, 0.001), UpgradeManager.get_blast_floor(), 1.0)
+		var dmg := base_dmg * falloff * UpgradeManager.get_falling_multiplier(bb.is_falling())
 		var lethal: bool = (bb.hp - dmg) <= 0.0
 		var spawn_pos: Vector2 = bb.global_position + Vector2(randf_range(-15.0, 15.0), 0.0)
 		bb.register_hit_origin(global_position)   # 破碎以爆炸点为中心
@@ -205,15 +243,16 @@ func _apply_chain(dmg: float, center: Vector2) -> void:
 		var bb := body as BuildingBlock
 		if not is_instance_valid(bb) or bb.hp <= 0.0:
 			continue
-		var lethal: bool = (bb.hp - dmg) <= 0.0
+		var hit_dmg := dmg * UpgradeManager.get_falling_multiplier(bb.is_falling())
+		var lethal: bool = (bb.hp - hit_dmg) <= 0.0
 		var spawn_pos: Vector2 = bb.global_position + Vector2(randf_range(-15.0, 15.0), 0.0)
 		bb.register_hit_origin(center)
 		var dir := (bb.global_position - center).normalized()
 		if dir == Vector2.ZERO:
 			dir = Vector2.RIGHT
 		bb.launch(dir, 300.0)
-		bb.take_damage(dmg)
-		_spawn_damage_number(spawn_pos, dmg, bb.max_hp, lethal)
+		bb.take_damage(hit_dmg)
+		_spawn_damage_number(spawn_pos, hit_dmg, bb.max_hp, lethal)
 
 
 # 在方块上方生成浮动伤害数字（加入专用层）。

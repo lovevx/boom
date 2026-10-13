@@ -1,0 +1,195 @@
+{
+	"checks": [
+		{
+			"detail": null,
+			"name": "24_run_21_permanent_nodes",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "new_prerequisite_rejects_without_charge",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "combo_available_in_first_run",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "first_rebirth_gate",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "permanent_rebirth_gate",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "all_10_new_nodes_purchase_and_cap",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "permanent_fire_control_changes_cycle",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "combined_discount_cap",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "new_and_old_nodes_roundtrip_without_double_rewards",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "slot_isolation_clears_expansion",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "legacy_save_defaults_new_nodes_to_zero",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "new_save_levels_clamped",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "contract_pays_at_50_and_counts_as_production",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "contract_not_reissued_on_load",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "contract_waits_for_next_boundary",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "contract_repeatable_per_50_blocks",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "discount_rounds_up_and_applies_to_existing_nodes",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "actual_purchase_matches_discounted_ui_cost",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "all_new_nodes_visible_in_real_panels",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "unique_in_bounds_positions_and_effect_tooltips",
+			"passed": true
+		},
+		{
+			"detail": 8.39999999999782,
+			"name": "real_combo_damage_ramp_and_stack_cap",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "combo_timeout_uses_game_time",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "miss_clears_combo",
+			"passed": true
+		},
+		{
+			"detail": 4.5,
+			"name": "third_real_hit_boosts_damage_and_hits_neighbor",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "real_hammer_execute_damage",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "real_hammer_falling_target_bonus",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "falling_block_real_reward_with_permanent_salvage",
+			"passed": true
+		},
+		{
+			"detail": 0.600000000000364,
+			"name": "real_blast_edge_floor",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "aftershock_waits_before_dealing_damage",
+			"passed": true
+		},
+		{
+			"detail": 2.0,
+			"name": "real_aftershock_damage_at_original_center",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "aftershock_is_one_shot_without_recursive_spawns",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "fourth_real_volley_is_empowered",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "empowered_damage_reaches_real_projectile",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "run_reset_clears_weapon_counters",
+			"passed": true
+		},
+		{
+			"detail": 148,
+			"name": "chain_aftershock_falling_rewards_settle_to_360_unique_slots",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "restart_removes_pending_aftershock_and_run_skills",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "real_rebirth_clears_new_run_nodes_preserves_specialization",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "rebirth_expansion_state_persisted",
+			"passed": true
+		}
+	],
+	"failed": 0
+}

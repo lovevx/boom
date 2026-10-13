@@ -1,0 +1,264 @@
+{
+	"checks": [
+		{
+			"detail": null,
+			"name": "tutorial_first_damage_cost",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "insufficient_gold_rejected",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "locked_purchase_rejected",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "purchase_debits_and_upgrades",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "first_damage_gain",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "maxed_node_does_not_consume_gold",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "maxed_cost_sentinel",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "first_rebirth_boundary",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "deep_rebirth_curve",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "per_run_rp_cap",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "next_rp_threshold",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "zero_reward_cannot_farm_unlocks",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "valid_rebirth_grants_points",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "first_rebirth_unlocks",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "permanent_branch_prerequisite",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "permanent_root_purchase",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "permanent_child_purchase",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "run_and_permanent_multiply",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "fractional_base_damage_retained",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "economy_root_purchase",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "capital_purchase",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "capital_excluded_from_rp_and_career",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "bonus_recalculation_idempotent",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "save_load_levels_and_balance",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "save_load_preserves_permanent_product",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "load_never_grants_income",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "crit_chance_has_immediate_damage_gain",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "launcher_milestone_0",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "launcher_milestone_1",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "launcher_milestone_2",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "launcher_milestone_3",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "launcher_milestone_5",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "launcher_milestone_8",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "new_slot_does_not_inherit_meta",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "ui_maxed_click_does_not_spend",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "tooltip_uses_actual_damage",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "rebirth_modal_pauses_game",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "rebirth_modal_restores_pause",
+			"passed": true
+		},
+		{
+			"detail": 101,
+			"name": "large_blast_not_capped_at_32",
+			"passed": true
+		},
+		{
+			"detail": 0.00999999999999979,
+			"name": "bomb_damage_independent_from_hammer",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "auto_hammer_targets_building",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "quantity_does_not_double_boost_rate",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "fire_animation_scales_with_rate",
+			"passed": true
+		},
+		{
+			"detail": [
+				2.50455233333334,
+				4.54772727272731,
+				6.58863636363646
+			],
+			"name": "live_max_rate_shot_count",
+			"passed": true
+		},
+		{
+			"detail": 2.04317493939397,
+			"name": "live_max_rate_matches_cooldown",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "live_automation_destroys_blocks",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "rebirth_confirmation_returns_to_menu",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "rebirth_preserves_meta_and_grants_rp",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "rebirth_resets_run_and_grants_capital_once",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "rebirth_restores_starting_upgrade_state",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "rebirth_state_persisted",
+			"passed": true
+		}
+	],
+	"failed": 0
+}

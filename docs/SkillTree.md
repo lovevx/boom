@@ -1,6 +1,6 @@
 # 技能树系统（2026-10-09）
 
-技能树保留现有四向布局、14 个节点和等级上限。参数见 [Numeric_Balance.md](Numeric_Balance.md)，代码唯一来源为 `UpgradeManager.RUN_VALUES / RUN_COSTS` 与各炮台、机制升级表。
+技能树沿用四向布局，现有 14 个节点保留，并新增 10 个机制节点，共 24 个。完整节点表、前置、费用、组合与试玩目标见 [Demo_Expansion.md](Demo_Expansion.md)。基础参数见 [Numeric_Balance.md](Numeric_Balance.md)，代码来源为 `UpgradeManager.RUN_VALUES / RUN_COSTS`、各炮台与机制升级表及 `DEMO_NODES`。
 
 ## 分支定位
 
@@ -15,7 +15,7 @@
 
 锤伤 Lv.2 + 转生 ≥1 → 暴击率；暴击率 Lv.1 + 转生 ≥1 → 暴击伤害。
 
-炮弹伤害 Lv.2 + 转生 ≥2 → 连锁；炮弹范围 Lv.2 + 转生 ≥3 → 散射。
+炮弹伤害 Lv.2 + 转生 ≥2 → 连锁；炮弹范围 Lv.1 + 转生 ≥3 → 散射。散射一级费用 200，优先让最终轮早期体验多发；范围 Lv.2 仍是覆盖升级选择。
 
 ## 状态与购买
 

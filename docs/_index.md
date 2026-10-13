@@ -28,8 +28,16 @@
 | 调方块材质 / 莫氏硬度数值 | Material_Tiers.md | 先读分档表与 4.4 设计规则，再动 BuildingSetup TIERS |
 | 做转生 / 永久加成 | Reincarnation.md | 先确认转生点公式与三大方向，再动 UpgradeManager / GoldManager |
 | 调单局技能树（升级面板）/ 节点前置层级 | SkillTree.md | 先确认每线垂直多级树与统一前置规则，再动 UpgradePanel / UpgradeManager |
-| 校准 30 分钟单局数值节奏（点击CD/TTK/挡位/首转） | Numeric_Balance.md | 先读基线、CD 杠杆与节奏锚点，再动 Hammer / BuildingSetup / RP_GAIN_BASE |
+| 校准 20–30 分钟完整 Demo（首炮/三次转生/散射收尾） | Demo_Pacing.md, Numeric_Balance.md | 模型、引擎流程、真人试玩分别报告；先校准阶段目标，再改费用和效果 |
 | 借鉴同类破坏型增量的设计方法 | Reference_WhatTheBuck.md | 读 What the Buck?! 公开设计 → 六条方法映射；只学方法、数值自压 |
 | 看完整 GDD（含设计决策与迭代过程） | GDD.md | 求职/整体视角：标准 GDD 框架 + 每章过程叙事；单点细节再按表查 |
 | 讲"我用 AI 提效"的作品集案例 | AI_Workflow.md | 求职用：AI 在开发全流程的使用、方法、边界与真实案例 |
 | 记录决策 / 测试结论 | EXPERIENCE.md 测试记录表 | 回填日期 + 一句话结论，供下轮迭代 |
+## Demo 内容扩展
+
+- [Demo_Expansion.md](Demo_Expansion.md)：24 个单局节点、21 个永久节点、三条成长路线、前三次转生内容和验证记录。
+
+- UI、新手工程与原创炮素材：[UI_Refresh.md](UI_Refresh.md)。
+- 破坏特效、炮弹尾迹与动态反馈：[Motion_Feedback.md](Motion_Feedback.md)。
+- 场景配色、材质衔接、接地阴影与超宽屏：[Scene_Art_Harmony.md](Scene_Art_Harmony.md)。
+- 楼体 2.5D、连续窗带、薄楼板和破坏断面：[Building_Depth.md](Building_Depth.md)。

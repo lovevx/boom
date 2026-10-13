@@ -23,10 +23,10 @@ const UI_BASE_DB := -6.0
 const SETTINGS_PATH := "user://settings.cfg"
 # 背景音乐候选曲目（按 index 切换，设置界面可手动换曲）
 const BGM_FILES := [
-	"res://assets/presentation/audio/yard_shift.wav",
-	"res://assets/presentation/audio/demolition_rhythm.wav",
+	"res://assets/audio/bgm/BGM1.mp3",
+	"res://assets/audio/bgm/bgm2.mp3",
 ]
-const BGM_NAMES := ["晴日工地", "拆除节拍"]   # 设置界面显示的曲名
+const BGM_NAMES := ["BGM 1", "BGM 2"]   # 原有两首音乐，沿用当前选曲序号
 
 # 当前音量（0.0~1.0，100% = 保持总线基准）与选中的 BGM 序号。
 var music_volume := 1.0

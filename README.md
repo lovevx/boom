@@ -74,10 +74,14 @@ boomame/
 | --- | --- |
 | 整体规划 / 怎么读文档 | [docs/_index.md](docs/_index.md) |
 | 设计理念与迭代记录 | [docs/EXPERIENCE.md](docs/EXPERIENCE.md) |
-| 数值平衡与节奏（30 分钟单局） | [docs/Numeric_Balance.md](docs/Numeric_Balance.md) |
+| 数值平衡与完整 Demo（20–30 分钟目标） | [docs/Demo_Pacing.md](docs/Demo_Pacing.md)、[docs/Numeric_Balance.md](docs/Numeric_Balance.md) |
 | 系统分工与依赖 | [docs/MODULES.md](docs/MODULES.md) |
 
 ## 状态说明
+
+- 2026-10-13：场景配色统一，并增加楼体窄侧面、整栋受光、固定窗带、薄楼板及随破坏变化的断面。181 项专项与回归检查通过。见 [楼体表现说明](docs/Building_Depth.md)、[前后对比页面](artifacts/building-depth/comparison.html)、[13 秒实机录像](artifacts/building-depth/building-depth.mp4)。HTML 可下载后在本地打开；录像使用测试进度加速展示。
+
+- 2026-10-13：Demo 增加四轮工程目标、试玩计时和散射工程完成提示，并校准首炮、基础爆破和转生门槛；完成后可继续游玩。20–30 分钟为休闲混合试玩目标，自动引擎数据与真人待验收项见 [节奏报告](docs/Demo_Pacing.md)。
 
 - 2026-10-09：同步美术 / 音效 / UI、技能树与转生数值更新，修复受击回弹与下落动画竞争、落定时补层抢先填洞及重复破碎结算。见 [本次更新记录](docs/Release_2026-10-09.md)。
 - 方块下落回归检查 11 项通过，覆盖单块破坏、范围锤、炸弹连锁、下落途中再次破坏及同帧重复命中。结果见 [验证报告](artifacts/collapse/verification.json)。

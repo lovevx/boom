@@ -24,6 +24,42 @@
 
 ## 依赖图
 
+### 2026-10-13 场景协调表现层
+
+| 模块 | 文件 | 职责 | 输入 / 输出 | 依赖 |
+| --- | --- | --- | --- | --- |
+| DemolitionContactShadow | `scripts/ContactShadow.gd` | 塔脚和履带下的两层像素阴影；炮台阴影固定在世界地面，随部署显现、随隐藏收起、随炮台释放 | `footprint`、`owner_visual`、`ground_y` / `reveal()` | PresentationProfile；不参与物理、伤害或奖励 |
+| 场景调色 | `Presentation.scene_material(kind)` | 缓存背景、实心方块、玻璃、设备/碎屑、烟尘的共享 ShaderMaterial；最近邻采样与透明度保留 | `background`、`stone`、`glass`、`granite`、`granite_shard`、`equipment`、`dust` / 共享材质 | PresentationProfile、`assets/presentation/shaders/`；设置在新运行时读取 |
+
+场景美术规则与验证入口见 [Scene_Art_Harmony.md](Scene_Art_Harmony.md)。方块外轮廓挂在自身 VisualLayer 下，随塌落移动和销毁，不维护固定楼体装饰。
+
+### 2026-10-13 楼体 2.5D 表现
+
+| 模块 | 文件 | 职责 | 输入 / 输出 | 依赖 |
+| --- | --- | --- | --- | --- |
+| DemolitionBuildingFacade | `scripts/BuildingFacade.gd` | 每块拥有的侧面、背面、顶部断面和立面柱线/窗台/薄楼板；仅在创建时绘制，无逐帧扫描 | 列号、墙/楼板颜色、玻璃与楼板标记、depth_only；无物理输出 | PresentationProfile；BuildingSetup 创建为 VisualLayer 子节点 |
+
+完整说明见 [Building_Depth.md](Building_Depth.md)。真实玻璃重排到 2/3 与 8/9 列两个窗带，初始每墙层仍为 2～4 扇；补层窗带槽位以 0.75 概率出玻璃，整行期望仍为 3。所有材质 HP、金币、40×40 碰撞和逐列塌落算法保留。装饰侧面不增加可点击目标。
+
+### 2026-10-13 Demo 节奏模块
+
+| 模块 | 文件 | 职责 | 输入 / 输出 | 依赖 |
+| --- | --- | --- | --- | --- |
+| DemoProgress | [DemoProgress.gd](../scripts/DemoProgress.gd) | 每槽位四轮目标、真实试玩计时、累计产出/拆除、散射轮数、一次性完成记录 | `get_goal()`、`register_scatter_volley()`、`get_save_state()` / `restore_state()`；`completed` 信号 | ReincarnationManager、GoldManager、SaveManager；不持有单局或永久技能等级 |
+| DemoSummary | [DemoSummary.gd](../scripts/DemoSummary.gd) | GoldHUD 下的完成弹窗；等待其他面板关闭，一次展示，继续/主菜单 | 读取已保存的完成快照；确认展示标记落盘 | DemoProgress、Presentation、GoldHUD |
+
+`GoldManager` 登记每块拆除和实际产出；开局资金不计入；`BombLauncher` 生成整轮炮弹后登记一次散射。读档先恢复金币（触发 `run_reset`），再恢复 Demo 字段，避免覆盖已存散射计数。新游戏清空 Demo；重开/转生清空本轮计数但保留用时和完成快照。建筑依然不反向调用炮台。
+
+### 2026-10-09 Demo 扩展模块
+
+| 模块 | 文件 | 职责 | 输入 / 输出 | 依赖 |
+| --- | --- | --- | --- | --- |
+| DemolitionAftershock | [Aftershock.gd](../scripts/Aftershock.gd) | 场景所有的单次延迟伤害；0.45 秒后对原爆点结算，不生成连锁或新余震；属于 `in_game_entity`，随暂停冻结、随重开 / 切场清理 | 输入：伤害、半径、保底衰减；输出：伤害数字、蓝色爆炸、方块伤害 | BuildingBlock、UpgradeManager、BlastFx、DamageNumber；由 BombProjectile 创建 |
+| Demo 节点目录 | `UpgradeManager.DEMO_NODES` | 10 个新增单局机制的效果、费用、前置、转生门槛与布局共享表 | 输入：金币购买 / 存档等级；输出：节点状态与实际效果 | ReincarnationManager；由技能树、武器和奖励结算读取 |
+| 永久专精 | `ReincarnationManager.NODE_DEFS / specialization_steps` | 9 个新增永久专精的 RP 购买、门槛与统一效果增量 | 输入：RP / 永久等级；输出：运行时加值与提示 | SaveManager；不持有单局等级 |
+
+GoldManager 新增 `run_reset` 信号，在重开或读档时清理锤击连击、有效锤数和每台炮台的齐射计数；合同以已经存档的拆除数量判定结算，不维护额外未持久化的进度。Building 系没有增加对炮台的反向调用。
+
 ```mermaid
 flowchart TD
     Player --> Hammer
@@ -31,6 +67,8 @@ flowchart TD
     LauncherManager --> BombLauncher
     BombLauncher --> BombProjectile
     BombProjectile --> BuildingBlock
+    BombProjectile --> DemolitionAftershock
+    DemolitionAftershock --> BuildingBlock
     BombProjectile --> CameraShake
     BuildingSetup --> BuildingBlock
     BuildingBlock --> Debris
@@ -41,6 +79,16 @@ flowchart TD
 ```
 
 ## 协作约定
+
+### 2026-10-13 破坏表现
+
+| 模块 | 文件 | 职责 | 依赖 |
+| --- | --- | --- | --- |
+| DemolitionImpactFx | [ImpactFx.gd](../scripts/ImpactFx.gd) | 直接绘制短促锤击弧线与定向炮口火花；共用 hit 预算；随暂停冻结、自毁和重开清理 | Presentation；由 Hammer / BombLauncher 创建 |
+| BlastFx / DustFx | `scripts/BlastFx.gd` / `scripts/DustFx.gd` | 像素爆炸搭配两层压力环、火星；粉尘扩散、上升、淡出 | Presentation；不参与命中计算 |
+| 炮弹尾迹 | `scripts/BombProjectile.gd` | 固定上限的世界坐标历史点，直接绘制渐细尾迹 | PresentationProfile；不改变弹道 |
+
+视觉参数和减少动态效果规则见 [SPEC.md](SPEC.md) 的表现优化参数表；渲染验证脚本为 `tools/motion_verify.gd`，必须在独立用户目录的副本运行。
 
 - 炸弹炮台由 LauncherManager 生成并挂到 Main 下（世界对象）；抛射炮弹由 BombLauncher `get_tree().current_scene.add_child()` 挂到 Main 下；破碎碎屑由 BuildingBlock 挂到 `current_scene` 下；金币弹出提示也由 BuildingBlock 挂到 `current_scene` 下。
 - 金币只累加数量 + 弹出提示，不做物理掉落（遵循"破坏反馈=破碎/粉碎"取向）。

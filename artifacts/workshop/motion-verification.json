@@ -1,0 +1,86 @@
+{
+	"checks": [
+		{
+			"detail": null,
+			"name": "buttons_use_artwork_nine_slice",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "panels_use_artwork_nine_slice",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "hover_animates_mechanical_brackets",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "hover_keeps_hit_target_stable",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "real_pointer_press_drives_feedback",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "styled_button_still_opens_slots",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "gold_gain_flashes_counter_plate",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "dialog_has_visible_slide_in",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "dialog_settles_at_layout_position",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "ui_motion_runs_while_game_is_paused",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "styled_node_purchase_retains_gameplay",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "reduced_motion_stops_panel_scan_and_flash",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "reduced_motion_stays_static",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "reduced_motion_opens_without_slide_or_fade",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "styled_rebirth_action_is_visible",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "chrome_recreated_after_scene_change",
+			"passed": true
+		}
+	],
+	"failures": [],
+	"user_dir": "C:/Users/31992/AppData/Roaming/Godot/app_userdata/BoomameDemoValidation"
+}

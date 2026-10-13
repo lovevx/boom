@@ -1,0 +1,54 @@
+{
+	"checks": [
+		{
+			"name": "initial_2_to_4_real_windows_per_storey",
+			"passed": true
+		},
+		{
+			"name": "glass_matches_regular_window_bays",
+			"passed": true
+		},
+		{
+			"name": "all_360_collisions_remain_40x40",
+			"passed": true
+		},
+		{
+			"name": "material_hp_and_reward_values_preserved",
+			"passed": true
+		},
+		{
+			"name": "decorative_side_does_not_add_hit_targets",
+			"passed": true
+		},
+		{
+			"name": "destroyed_front_releases_its_entire_depth_shell",
+			"passed": true
+		},
+		{
+			"name": "cutaway_destruction_rewards_each_block_once",
+			"passed": true
+		},
+		{
+			"name": "cutaway_collapses_and_refills_to_360",
+			"passed": true
+		},
+		{
+			"name": "refilled_blocks_receive_architectural_skin",
+			"passed": true
+		},
+		{
+			"name": "decorated_blocks_settle_on_original_grid",
+			"passed": true
+		},
+		{
+			"name": "building_reset_releases_old_shells",
+			"passed": true
+		},
+		{
+			"name": "scene_change_releases_all_architecture",
+			"passed": true
+		}
+	],
+	"failures": [],
+	"user_dir": "C:/Users/31992/AppData/Roaming/Godot/app_userdata/BoomamePresentationValidationMotionSceneArtValidation"
+}

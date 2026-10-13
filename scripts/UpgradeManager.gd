@@ -6,6 +6,57 @@ extends Node
 signal upgrades_changed   # 任一升级完成时发出，供升级面板刷新
 signal launcher_upgraded(new_level: int)   # 炸弹发射器升级时发出，供 LauncherManager 实时激活/更新
 
+@export_group("Demo 机制参数")
+@export var combo_window := 1.5
+@export var combo_stack_cap := 5
+@export var power_strike_every := 3
+@export var power_strike_radius := 40.0
+@export var execute_threshold := 0.50
+@export var contract_blocks := 50
+@export var cost_discount_cap := 0.25
+@export var blast_floor_cap := 0.80
+@export var barrage_rounds := 4
+@export var aftershock_delay := 0.45
+
+# Demo 机制节点：值、费用、前置和布局共享目录，避免新增节点遗漏存档或面板。
+const DEMO_NODES := {
+	"combo": {"title":"连续作业", "branch":"hammer", "tier":2, "slot":1, "pre":"hammer_speed", "lv":1, "gate":0, "values":[0.0,0.08,0.12,0.16], "costs":[70,480,1800,-1]},
+	"power_strike": {"title":"蓄势重锤", "branch":"hammer", "tier":2, "slot":2, "pre":"hammer_range", "lv":1, "gate":1, "values":[1.0,1.5,2.0,2.5], "costs":[140,750,2800,-1]},
+	"execute": {"title":"裂隙拆除", "branch":"hammer", "tier":2, "slot":3, "pre":"hammer_damage", "lv":2, "gate":1, "values":[0.0,0.25,0.50,0.75], "costs":[110,650,2400,-1]},
+	"salvage": {"title":"坍塌回收", "branch":"build", "tier":2, "slot":1, "pre":"building_drop_speed", "lv":1, "gate":0, "values":[0,1,2,3], "costs":[100,500,1900,-1]},
+	"contract": {"title":"拆除合同", "branch":"econ", "tier":2, "slot":1, "pre":"coin_multiplier", "lv":1, "gate":0, "values":[0,40,80,140], "costs":[120,550,2000,-1]},
+	"discount": {"title":"批量采购", "branch":"econ", "tier":2, "slot":2, "pre":"coin_base", "lv":1, "gate":1, "values":[0.0,0.05,0.10,0.15], "costs":[200,900,3300,-1]},
+	"blast_floor": {"title":"高能装药", "branch":"bomb", "tier":3, "slot":3, "pre":"bomb_damage", "lv":1, "gate":0, "values":[0.30,0.40,0.50,0.60], "costs":[160,700,2600,-1]},
+	"aftershock": {"title":"延时余震", "branch":"bomb", "tier":3, "slot":2, "pre":"chain", "lv":1, "gate":2, "values":[0.0,0.20,0.35,0.50], "costs":[500,2800,8500,-1]},
+	"barrage": {"title":"齐射重炮", "branch":"bomb", "tier":3, "slot":5, "pre":"bomb_rate", "lv":1, "gate":1, "values":[0.0,0.50,1.0,1.5], "costs":[250,1300,4600,-1]},
+	"falling_damage": {"title":"空中解体", "branch":"build", "tier":2, "slot":2, "pre":"salvage", "lv":1, "gate":2, "values":[0.0,0.25,0.50,0.75], "costs":[200,1200,4200,-1]},
+}
+var demo_levels: Dictionary = {}
+
+func demo_value(nid: String, level: int = -1) -> float:
+	var lv := int(demo_levels.get(nid, 0)) if level < 0 else level
+	return float(DEMO_NODES[nid].values[lv])
+
+func get_cost_discount() -> float:
+	return minf(cost_discount_cap, demo_value("discount") + ReincarnationManager.get_specialization("procurement"))
+
+func get_contract_reward() -> int:
+	return roundi(demo_value("contract") * (1.0 + ReincarnationManager.get_specialization("contract_license")))
+
+func get_salvage_bonus() -> int:
+	if demo_value("salvage") <= 0.0:
+		return 0
+	return int(demo_value("salvage") + ReincarnationManager.get_specialization("salvage_license"))
+
+func get_blast_floor() -> float:
+	return minf(blast_floor_cap, demo_value("blast_floor") + ReincarnationManager.get_specialization("blast_training"))
+
+func get_barrage_period() -> int:
+	return barrage_rounds - int(ReincarnationManager.get_specialization("barrage_training"))
+
+func get_falling_multiplier(falling: bool) -> float:
+	return 1.0 + demo_value("falling_damage") if falling else 1.0
+
 
 # 各可升级项的满级上限（达到后按钮置灰显示"已满级"）。
 # 统一口径：基础数值/绝对值增长上限 5 级（等级 0..5）；百分比/倍率增长上限 3 级（等级 0..3）。
@@ -20,7 +71,7 @@ const MAX_BUILDING_DROP_SPEED_LEVEL: int = 3    # 百分比（下落速度倍率
 const MAX_LAUNCHER_COUNT_LEVEL: int = 4
 const LAUNCHER_COUNTS: Array[int]   = [0, 1, 2, 3, 4]   # 解锁的发射器数量（数量 = 等级）
 const LAUNCHER_COOLDOWNS: Array[float] = [0.0, 3.4, 3.4, 3.4, 3.4]
-const LAUNCHER_COSTS: Array[int]    = [60, 900, 4500, 15000, -1]
+const LAUNCHER_COSTS: Array[int]    = [40, 900, 4500, 15000, -1]
 
 # —— 炸弹发射速率升级表（索引 = 等级 0..3）——
 # 倍率作用于基础冷却：最终冷却 = 基础冷却 × 速率倍率（0级 = 1.0 不加速）。百分比类 → 上限 3 级。
@@ -31,14 +82,14 @@ const LAUNCHER_RATE_COSTS: Array[int] = [200, 1100, 4200, -1]
 # —— 炸弹伤害升级表（索引 = 等级 0..5）——
 # 绝对值 → 上限 5 级。
 const MAX_BOMB_DAMAGE_LEVEL: int = 5
-const BOMB_DAMAGES: Array[int] = [6, 9, 13, 18, 25, 34]
-const BOMB_DAMAGE_COSTS: Array[int] = [100, 450, 1600, 5200, 16000, -1]
+const BOMB_DAMAGES: Array[int] = [10, 14, 19, 25, 34, 46]
+const BOMB_DAMAGE_COSTS: Array[int] = [80, 450, 1600, 5200, 16000, -1]
 
 # —— 炸弹范围升级表（索引 = 等级 0..5）——
 # 绝对值 → 上限 5 级。
 const MAX_BOMB_RADIUS_LEVEL: int = 5
 const BOMB_RADII: Array[float] = [70.0, 95.0, 120.0, 145.0, 170.0, 200.0]
-const BOMB_RADIUS_COSTS: Array[int] = [140, 650, 2300, 7500, 24000, -1]
+const BOMB_RADIUS_COSTS: Array[int] = [100, 500, 2300, 7500, 24000, -1]
 
 # —— 机制升级（转生次数解锁后，单局技能树用金币购买；满级为 -1）——
 # 暴击：方块受击时按暴击率判定 × 暴击伤害倍率。
@@ -51,11 +102,11 @@ const CRIT_MULT_COSTS: Array[int] = [400, 1600, 4800, -1]
 # 连锁：爆炸击碎方块后，对周围存留方块追加的连锁加伤比例。
 const MAX_CHAIN_LEVEL: int = 3
 const CHAIN_STEP: float = 0.15         # 每级连锁加伤 +15%
-const CHAIN_COSTS: Array[int] = [650, 2600, 8000, -1]
+const CHAIN_COSTS: Array[int] = [400, 2600, 8000, -1]
 # 散射炮：单台每次发射基数（索引 = 等级 0..3），升级→每次多发。
 const MAX_SCATTER_LEVEL: int = 3
 const SCATTER_MULTIS: Array[float] = [1.0, 2.0, 3.0, 4.0]
-const SCATTER_COSTS: Array[int] = [1800, 7000, 22000, -1]
+const SCATTER_COSTS: Array[int] = [200, 7000, 22000, -1]
 
 # 单局数值与费用：索引为当前等级；费用最后一项 -1 表示满级。
 const RUN_VALUES := {
@@ -70,8 +121,8 @@ const RUN_COSTS := {
 	"hammer_speed": [12, 70, 260, -1],
 	"hammer_damage": [2, 35, 140, -1],
 	"hammer_range": [20, 160, 600, 1800, 5000, -1],
-	"coin_multiplier": [60, 240, 850, 2600, 7500, -1],
-	"coin_base": [75, 300, 1100, 3400, 9500, -1],
+	"coin_multiplier": [45, 240, 850, 2600, 7500, -1],
+	"coin_base": [60, 300, 1100, 3400, 9500, -1],
 	"building_drop_speed": [25, 180, 700, -1],
 }
 
@@ -229,6 +280,7 @@ func upgrade_scatter() -> void:
 # 复位后广播 upgrades_changed（技能树刷新），并广播 launcher_upgraded(开局数量)（让 LauncherManager 隐藏全部炮台）。
 # 用于"重新开始"，需彻底复位以清除上一次游玩残留的等级。
 func reset() -> void:
+	demo_levels.clear()
 	# 六个数值类升级项：等级与派生数值一起复位
 	_hammer_speed_level = 0   ; hammer_speed = 1.0
 	_hammer_damage_level = 0  ; hammer_damage = 1.0
@@ -259,6 +311,8 @@ func reset() -> void:
 # 复用各 upgrade_* 方法保证派生数值公式与实玩完全一致（单一数据源）。
 # 发射器数量是"绝对等级"（含开局自带数），与 reset 的起始数叠加会重复计数，故单独直接设置。
 func set_state_from_save(s: Dictionary) -> void:
+	for nid in DEMO_NODES:
+		demo_levels[nid] = clampi(int(s.get(nid, 0)), 0, DEMO_NODES[nid].values.size() - 1)
 	for i in maxi(0, int(s.get("hammer_speed", 0))):
 		upgrade_hammer_speed()
 	for i in maxi(0, int(s.get("hammer_damage", 0))):
@@ -451,7 +505,7 @@ const NODE_PRE_REQS := {
 	"bomb_radius": [{"node": "bomb_launcher", "lvl": 1}],
 	"bomb_rate":   [{"node": "bomb_launcher", "lvl": 1}],
 	"chain":       [{"node": "bomb_damage", "lvl": 2}],
-	"scatter":     [{"node": "bomb_radius", "lvl": 2}],
+	"scatter":     [{"node": "bomb_radius", "lvl": 1}],
 }
 
 ## 机制门：节点 → 需转生解锁的机制（转到 ReincarnationManager.is_mechanic_unlocked）
@@ -463,6 +517,8 @@ const MECH_GATE_THRESHOLD := {"crit": 1, "chain": 2, "scatter": 3}
 
 ## 节点满级（-1 = 无上限）。与各 get_*_level / 升级方法一致。
 func get_node_max_level(nid: String) -> int:
+	if DEMO_NODES.has(nid):
+		return DEMO_NODES[nid].values.size() - 1
 	match nid:
 		"hammer_speed": return MAX_HAMMER_SPEED_LEVEL
 		"hammer_damage": return MAX_HAMMER_DAMAGE_LEVEL
@@ -483,6 +539,8 @@ func get_node_max_level(nid: String) -> int:
 
 ## 读取某节点当前等级（各 num 字段来自上方升级方法，集中走一个入口便于面板统一查询）。
 func _get_node_level(nid: String) -> int:
+	if DEMO_NODES.has(nid):
+		return int(demo_levels.get(nid, 0))
 	match nid:
 		"hammer_speed": return _hammer_speed_level
 		"hammer_damage": return _hammer_damage_level
@@ -509,6 +567,13 @@ func get_node_state(nid: String) -> Dictionary:
 	var lv := _get_node_level(nid)
 	var gate: String = NODE_MECHANIC_GATE.get(nid, "")
 	var reasons: Array[String] = []
+	if DEMO_NODES.has(nid):
+		var d: Dictionary = DEMO_NODES[nid]
+		if ReincarnationManager.total_reincarnations < int(d.gate):
+			reasons.append("转生 ≥ %d 次解锁" % int(d.gate))
+		if _get_node_level(d.pre) < int(d.lv):
+			var pre_title: String = DEMO_NODES[d.pre].title if DEMO_NODES.has(d.pre) else NODE_TITLES.get(d.pre, d.pre)
+			reasons.append("先解锁「%s」Lv.%d" % [pre_title, int(d.lv)])
 	if gate != "" and not ReincarnationManager.is_mechanic_unlocked(gate):
 		reasons.append("转生 ≥ %d 次解锁" % int(MECH_GATE_THRESHOLD.get(gate, 1)))
 	for pre in NODE_PRE_REQS.get(nid, []):
@@ -544,7 +609,12 @@ func recalculate_stats() -> void:
 func get_node_cost(nid: String) -> int:
 	if get_node_max_level(nid) < 0:
 		return -1
-	return int(call("get_" + nid + "_cost"))
+	var cost: int
+	if DEMO_NODES.has(nid):
+		cost = int(DEMO_NODES[nid].costs[_get_node_level(nid)])
+	else:
+		cost = int(call("get_" + nid + "_cost"))
+	return maxi(1, ceili(cost * (1.0 - get_cost_discount()))) if cost > 0 else cost
 
 
 func purchase_node(nid: String) -> bool:
@@ -554,13 +624,30 @@ func purchase_node(nid: String) -> bool:
 	var cost := get_node_cost(nid)
 	if cost <= 0 or not GoldManager.spend_gold(cost):
 		return false
-	call("upgrade_" + nid)
+	if DEMO_NODES.has(nid):
+		demo_levels[nid] = _get_node_level(nid) + 1
+		upgrades_changed.emit()
+	else:
+		call("upgrade_" + nid)
 	return true
 
 
 # 提示卡直接查询实效，避免文案与数值表脱节。
 func get_node_effect(nid: String, next_level: bool = false) -> String:
 	var lv := mini(_get_node_level(nid) + (1 if next_level else 0), get_node_max_level(nid))
+	if DEMO_NODES.has(nid):
+		var val := demo_value(nid, lv)
+		match nid:
+			"combo": return "连续命中每层 +%d%% 伤害，最多 %d 层\n断击 %.1f 秒后重置；空挥清空" % [roundi(val * 100), combo_stack_cap, combo_window + ReincarnationManager.get_specialization("combo_memory")]
+			"power_strike": return "每第 %d 次有效锤击 ×%.1f 伤害\n该次命中半径额外 +%d px" % [power_strike_every, val, (power_strike_radius + ReincarnationManager.get_specialization("wave_training")) if lv > 0 else 0]
+			"execute": return "锤击生命 ≤%d%% 的方块时伤害 +%d%%" % [roundi((execute_threshold + ReincarnationManager.get_specialization("execute_training")) * 100), roundi(val * 100)]
+			"salvage": return "击碎下落方块额外 +%d 基础金币" % ((int(val + ReincarnationManager.get_specialization("salvage_license"))) if lv > 0 else 0)
+			"contract": return "每拆除 %d 块结算 %d 金币\n升级从下一次结算生效，计入转生产出" % [contract_blocks, roundi(val * (1.0 + ReincarnationManager.get_specialization("contract_license")))]
+			"discount": return "单局节点费用 -%d%%（合计上限 %d%%）" % [roundi(minf(cost_discount_cap, val + ReincarnationManager.get_specialization("procurement")) * 100), roundi(cost_discount_cap * 100)]
+			"blast_floor": return "爆炸边缘保底 %d%% 中心伤害" % roundi(minf(blast_floor_cap, val + ReincarnationManager.get_specialization("blast_training")) * 100)
+			"aftershock": return "%.2f 秒后追加 %d%% 伤害余震\n不触发连锁或再次余震；半径 ×%.1f" % [aftershock_delay, roundi(val * 100), 1.0 + ReincarnationManager.get_specialization("echo_mastery")]
+			"barrage": return "每台炮台第 %d 轮齐射伤害 +%d%%" % [get_barrage_period(), roundi(val * 100)]
+			"falling_damage": return "锤击与炮弹对下落方块伤害 +%d%%" % roundi(val * 100)
 	match nid:
 		"hammer_speed":
 			var speed := float(RUN_VALUES.hammer_speed[lv]) * (1.0 + ReincarnationManager._get_percent_sum("swift_wind"))

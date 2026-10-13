@@ -1,398 +1,301 @@
 extends CanvasLayer
-## 动作驱动（states-driven）的分步新手引导。
-##
-## 玩家每完成一个关键动作，才浮现下一条提示：绝不弹模态窗、绝不打断手部操作、
-## 同屏只显示一条主提示、可全局跳过。里程碑由现有模块信号驱动
-## （GoldManager / UpgradeManager / UpgradePanel），
-## 引导全程不改写任何模块的内部逻辑，只做单向监听；完成或跳过会通过 SaveManager
-## 在当前槽位写入"已过引导"标记。引导状态跟随存档槽位独立（新存档从新手教程开始），
-## 二次进退该槽位与重启游戏后不再出现。
-
-# —— 步骤常量（按序推进，每步只在上一步完成后进入）——
-enum Step {
-	NONE = -1,                    # 未开始/未启用
-	HIT = 0,                      # Step0 摧毁方块，获取 2 金币
-	OPEN_TREE = 1,                # Step1 高亮技能树按钮，点升级
-	ADD_DAMAGE = 2,               # Step2 在技能树加一次【锤子伤害】
-	DONE = 3,                     # Step3 加点后退出面板 → 完成新手教程
-}
-
-# —— 指向目标（世界/屏幕坐标，相机固定居中且 1:1）——
-const TARGET_BLOCK_ANCHOR := Vector2(960, 420)   # 楼体中央锚点，用于找"最近建筑方块"
-const TREE_BTN_POS := Vector2(1806, 49)          # 右上角技能树按钮中心
-const DAMAGE_NODE_POS := Vector2(960, 400)       # 兜底：技能树面板内"锤子伤害"节点的屏幕坐标
-const DAMAGE_NODE_ID := "hammer_damage"          # 引导目标节点 id（优先运行时从面板动态取坐标）
-
-# —— 提示文案 ——
-const MSG := {
-	Step.HIT: "摧毁方块，获取 2 金币！",
-	Step.OPEN_TREE: "点击这里打开技能树",
-	Step.ADD_DAMAGE: "在技能树中加一次【锤子伤害】",
-	Step.DONE: "继续赚更多的金币吧！",
-}
-
-# —— 视觉 / 节奏参数（集中管理，避免魔数散落）——
-const BAR_W := 680.0
-const BAR_H := 60.0
-const BAR_Y_BOTTOM := 920.0
-const BAR_Y_TOP := 40.0
-const GOLD_THRESHOLD := 2        # Step0 攒到该金币数（摧毁方块得 2 金币即进入 Step1）
-const CARD_AUTO_CLOSE := 1.5     # Step2 加点完成后延迟自动关面板的时长
-const DONE_HOLD := 2.5           # 退出面板后收尾提示的停留时长，随后完成教程
-const ARROW_OFFSET := Vector2(-14, 14)   # 简单箭头的箭尖相对目标位置；箭杆向左下延伸
-
+## Per-slot, non-modal guidance. Never buys or opens/closes a panel for the player.
+enum Step { NONE = -1, HIT, OPEN_TREE, ADD_DAMAGE, RETURN, WAIT_LAUNCHER, OPEN_LAUNCHER, BUY_LAUNCHER, RETURN_LAUNCHER, FIRST_FIRE, WAIT_REBIRTH, OPEN_REBIRTH, CONFIRM_REBIRTH }
 var _step: int = Step.NONE
 var _done := false
-var _damage_added := false	# Step2 已在技能树加了一次锤子伤害
-var _auto_close_scheduled := false	# Step2 加点后已排入"延迟关面板"，避免重复
-var _step_elapsed := 0.0
 var _pulse := 0.0
-var _arrow_cur := Vector2.ZERO    # 箭头当前位置（平滑插值用）
-var _arrow_ever_shown := false	# 箭头是否已显示过（首显直接定位，不做滑入）
-var _screen := Vector2(1920, 1080)
-
-# UI 节点
-var _bar: Panel
+var _elapsed := 0.0
+var _screen := Vector2.ZERO
+var _target := Rect2()
+var _avoid_rects: Array[Rect2] = []
+var _block: BuildingBlock
+var _bar: PanelContainer
 var _bar_label: Label
+var _phase_label: Label
 var _skip_btn: Button
 var _arrow: Node2D
+var _arrow_cur := Vector2.ZERO
+var _arrow_dir := Vector2.RIGHT
 var _glow: Node2D
 
-# 场景引用
-var _hammer: Node2D
-
 func _ready() -> void:
-	layer = 25                       # 高于 HUD(10)/UILayer(15)/TestPanel(20)
-	process_mode = Node.PROCESS_MODE_ALWAYS   # 技能树面板开会暂停树：引导需持续运行（箭头/自动关面板）
-	# 当前槽位无需引导（已过引导 / 无活动槽位）时直接销毁，不占任何资源
+	layer = 25
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	if not SaveManager.onboarding_pending:
 		queue_free()
 		return
-	_screen = get_viewport().get_visible_rect().size
-	get_viewport().size_changed.connect(_on_viewport_resized)
 	_build_ui()
-	_resolve_nodes()
-	_connect_signals()
-	_enter_step(Step.HIT)
-
-
-# —— 节点与信号绑定 ——
-
-func _resolve_nodes() -> void:
-	var root := get_tree().current_scene
-	_hammer = root.get_node_or_null("Hammer")
-
-
-# 只做单向监听，不改各模块内部逻辑。
-func _connect_signals() -> void:
-	GoldManager.gold_changed.connect(_on_gold_changed)          # Step0 攒 2 金币
-	UpgradeManager.upgrades_changed.connect(_on_upgrades_changed)  # Step2 加一次伤害
-	var panel := _panel()
-	if is_instance_valid(panel):
-		panel.visibility_changed.connect(_on_panel_visibility)
-
-
-# —— 状态推进（每步只在上一步完成后进入）——
-
-# Step0 摧毁方块攒够 2 金币 → 高亮技能树按钮，提示"点击这里打开技能树"。
-func _on_gold_changed(new_total: int) -> void:
-	if _done:
-		return
-	if _step == Step.HIT and new_total >= GOLD_THRESHOLD:
-		_enter_step(Step.OPEN_TREE)
-
-
-# Step2 玩家在技能树加了一次伤害（锤子伤害 Lv≥1）→ 排入"延迟自动关面板"，免手动退出。
-func _on_upgrades_changed() -> void:
-	if _done:
-		return
-	if _step == Step.ADD_DAMAGE and UpgradeManager.get_hammer_damage_level() >= 1 \
-			and not _damage_added:
-		_damage_added = true
-		if not _auto_close_scheduled:
-			_auto_close_scheduled = true
-			# 面板处于暂停态，需 process_always=true 让倒计时照常走完并自动关面板
-			get_tree().create_timer(CARD_AUTO_CLOSE, true).timeout.connect(_auto_close_panel)
-
-
-# 加点后延迟自动关闭技能树面板；面板隐藏会触发 _on_panel_visibility → 完成引导。
-func _auto_close_panel() -> void:
-	_auto_close_scheduled = false
-	if _done or _step != Step.ADD_DAMAGE or not _damage_added:
-		return
-	var panel := _panel()
-	if is_instance_valid(panel) and panel.visible:
-		panel.close()
-
-
-# 技能树面板显隐时刻（open() → show，close() → hide）。
-func _on_panel_visibility() -> void:
-	if _done:
-		return
-	var panel := _panel()
-	var shown: bool = is_instance_valid(panel) and panel.visible
-	if shown:
-		# 第一次打开技能树：Step1 → Step2（引导在面板内加一次伤害）
-		if _step == Step.OPEN_TREE:
-			_enter_step(Step.ADD_DAMAGE)
-	elif _step == Step.ADD_DAMAGE and _damage_added:
-		# 加点后退出面板 → 进入收尾提示（停留一会儿再完成教程）
-		_enter_step(Step.DONE)
-		get_tree().create_timer(DONE_HOLD, true).timeout.connect(_finish)
-
-
-# —— 进入某一步 ——
-
-func _enter_step(s: int) -> void:
-	_step = s
-	_step_elapsed = 0.0
-	_bar_label.text = MSG[s]
-	SoundManager.play("onboarding_pop")   # 引导提示浮现轻提醒
-	_position_bar(false)   # 提示条统一在底部
-	_bar.modulate.a = 1.0
-	var tween := create_tween()
-	tween.tween_property(_bar, "scale", Vector2(0.96, 0.96), 0.0)
-	tween.tween_property(_bar, "scale", Vector2.ONE, 0.25) \
-		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-
-
-func _position_bar(top: bool) -> void:
-	var x := (_screen.x - BAR_W) / 2.0
-	_bar.position = Vector2(x, BAR_Y_TOP if top else BAR_Y_BOTTOM)
-
-
-# —— 每帧：箭头呼吸、锤头亮圈 ——
+	get_viewport().size_changed.connect(_layout)
+	ReincarnationManager.reincarnation_changed.connect(_on_rebirth)
+	var manager := get_tree().current_scene.get_node_or_null("LauncherManager")
+	if manager:
+		for launcher in manager.get_children():
+			if launcher.has_signal("bomb_fired"):
+				launcher.bomb_fired.connect(_on_bomb_fired)
+	_layout()
+	_tick()
 
 func _process(delta: float) -> void:
-	if _done or _step == Step.NONE:
+	if _done:
 		return
-	_step_elapsed += delta
 	_pulse += delta * 3.0
-	_update_arrow(delta)
-	_update_glow()
-
-
-func _update_arrow(delta: float) -> void:
-	var target: Variant = _arrow_target()
-	if target == null:
-		_arrow.visible = false
-		return
-	_arrow.visible = true
-	var pos: Vector2 = target + ARROW_OFFSET
-	# 首次显示直接定位（不做滑入）；之后用指数插值平滑跟随目标移动
-	if not _arrow_ever_shown:
-		_arrow_cur = pos
-		_arrow_ever_shown = true
-	else:
-		var t := 1.0 - exp(-10.0 * delta)   # 阻尼系数：越小越慢越"顺滑"
-		_arrow_cur = _arrow_cur.lerp(pos, t)
-	_arrow.global_position = _arrow_cur
-	var breathe := 1.0 if Presentation.reduced_motion else 1.0 + 0.06 * sin(_pulse)
-	_arrow.scale = Vector2(breathe, breathe)
-	_arrow.modulate.a = 0.85
-
-
-func _update_glow() -> void:
-	if _step == Step.HIT and is_instance_valid(_hammer):
-		_glow.visible = true
-		_glow.global_position = _hammer.global_position
-		_glow.modulate.a = 0.65 + 0.35 * sin(_pulse)
-	elif _step == Step.OPEN_TREE:
-		# 高亮技能树按钮：沿按钮外圈画呼吸描边
-		_glow.visible = true
-		_glow.global_position = _tree_button_position()
-		_glow.modulate.a = 0.7 + 0.3 * sin(_pulse)
-	else:
-		_glow.visible = false
-
-
-# 各步箭头指向：目标物失效/无有效目标时返回 null → 自动隐藏（is_instance_valid 防悬空）。
-func _arrow_target() -> Variant:
-	match _step:
-		Step.HIT:
-			return _nearest_block_pos()
-		Step.OPEN_TREE:
-			return _tree_button_position()
-		Step.ADD_DAMAGE:
-			# 悬停可看效果、点击节点直接加点 → 箭头始终指向该节点；加完之后即结束
-			return _damage_node_pos() if not _damage_added else null
-		Step.DONE:
-			return null
-	return null
-
-
-# 引导目标节点坐标：优先从技能树面板动态取（跟随布局改动），面板不可用时回退常量兜底。
-func _damage_node_pos() -> Vector2:
-	var panel := _panel()
-	if is_instance_valid(panel) and panel.has_method("node_screen_pos"):
-		return panel.call("node_screen_pos", DAMAGE_NODE_ID)
-	return DAMAGE_NODE_POS
-
-
-# 用楼体锚点的物理点查询找出"最近的一个建筑方块"，块被毁后下一帧自动换到邻块。
-func _nearest_block_pos() -> Variant:
-	var root := get_tree().current_scene
-	var building := root.get_node_or_null("Building") as Node2D
-	if building == null:
-		return null
-	var space: PhysicsDirectSpaceState2D = building.get_world_2d().direct_space_state
-	var q := PhysicsPointQueryParameters2D.new()
-	q.position = TARGET_BLOCK_ANCHOR
-	q.collide_with_bodies = true
-	for hit in space.intersect_point(q):
-		var c: Object = hit.get("collider")
-		if is_instance_valid(c) and c.get_script() != null \
-				and c.get_script().resource_path.ends_with("BuildingBlock.gd"):
-			return c.get_global_transform_with_canvas().origin
-	return null
-
-
-# —— 跳过 / 结束 / 持久化 ——
-
-func _on_skip() -> void:
-	_finish()
-
-
-func _finish() -> void:
-	_done = true
-	SaveManager.mark_onboarding_done()   # 当前槽位落盘"已过引导"
-	visible = false   # 隐藏整个引导层
-
-
-# —— UI 搭建 ——
-
-func _build_ui() -> void:
-	# 底部/顶部提示条
-	_bar = Panel.new()
-	_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_bar.size = Vector2(BAR_W, BAR_H)
-	_bar.add_theme_stylebox_override("panel", _bar_style(Color(0, 0, 0, 0.72)))
-	add_child(_bar)
-
-	_bar_label = Label.new()
-	_bar_label.size = Vector2(BAR_W, BAR_H)
-	_bar_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_bar_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_bar_label.add_theme_font_size_override("font_size", 26)
-	_bar_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.96))
-	_bar.add_child(_bar_label)
-
-	# 右上角常驻跳过按钮
-	_skip_btn = Button.new()
-	_skip_btn.text = "跳过 ×"
-	_skip_btn.size = Vector2(180, 48)
-	_skip_btn.add_theme_font_size_override("font_size", 20)
-	_skip_btn.add_theme_stylebox_override("normal", _btn_style(Color(0.9, 0.3, 0.3)))
-	_skip_btn.add_theme_stylebox_override("hover", _btn_style(Color(1.0, 0.4, 0.4)))
-	_skip_btn.add_theme_stylebox_override("pressed", _btn_style(Color(0.7, 0.22, 0.22)))
-	_skip_btn.add_theme_stylebox_override("focus", _btn_style(Color(0.9, 0.3, 0.3)))
-	_skip_btn.pressed.connect(_on_skip)
-	add_child(_skip_btn)
-
-	# 手型箭头层（Node2D，在 CanvasLayer 下坐标为屏幕坐标）
-	_arrow = Node2D.new()
-	_arrow.visible = false
-	_arrow.draw.connect(func() -> void: _draw_arrow(_arrow))
-	add_child(_arrow)
-
-	# 锤头亮圈
-	_glow = Node2D.new()
-	_glow.visible = false
-	_glow.draw.connect(func() -> void: _draw_glow(_glow))
-	add_child(_glow)
-
-	# 初始定位
-	_position_bar(false)
-	# 右上角（避开技能树按钮 y25..73；放到金币栏下方的右上角，不挡点击）
-	_skip_btn.position = Vector2(_screen.x - 200.0, 158.0)
-
-
-func _draw_arrow(n: Node2D) -> void:
-	# 简单箭头：箭尖位于节点原点并指向目标（右上），箭杆向坐下延伸。
-	# 节点由 _update_arrow 放置在 目标 + ARROW_OFFSET，即"坐下指向目标"。
-	var col := Color(1.0, 0.85, 0.3, 1.0)
-	var out := Color(0, 0, 0, 0.5)
-	var dir := Vector2(1, -1).normalized()   # 指向右上
-	var wing := Vector2(-dir.y, dir.x)       # 垂直方向
-	var tail := -70.0 * dir                  # 箭尾（坐下）
-	# 箭杆（带黑描边增强可读性）
-	n.draw_line(tail, Vector2.ZERO, out, 7.0)
-	n.draw_line(tail, Vector2.ZERO, col, 4.5)
-	# 箭尖（V 形，尖端在原点）
-	var b1 := -22.0 * dir + 14.0 * wing
-	var b2 := -22.0 * dir - 14.0 * wing
-	n.draw_line(Vector2.ZERO, b1, out, 6.0)
-	n.draw_line(Vector2.ZERO, b2, out, 6.0)
-	n.draw_line(Vector2.ZERO, b1, col, 3.0)
-	n.draw_line(Vector2.ZERO, b2, col, 3.0)
-
-
-func _draw_glow(n: Node2D) -> void:
-	var col := Color(1.0, 0.8, 0.25, 1.0)
-	if _step == Step.OPEN_TREE:
-		# 技能树按钮外圈呼吸描边（按钮约 180x48，留一点外扩）
-		var half := Vector2(96, 30)
-		n.draw_rect(Rect2(-half, half * 2.0), col, false, 5.0)
-		n.draw_rect(Rect2(-half + Vector2(7, 7), half * 2.0 - Vector2(14, 14)), \
-			Color(col.r, col.g, col.b, 0.35), false, 2.0)
-		return
-	n.draw_arc(Vector2.ZERO, 34.0, 0.0, TAU, 48, col, 6.0)
-	n.draw_arc(Vector2.ZERO, 26.0, 0.0, TAU, 48, col, 3.0)
-
-
-func _bar_style(bg: Color) -> StyleBoxFlat:
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = bg
-	sb.set_corner_radius_all(14)
-	sb.set_border_width_all(2)
-	sb.border_color = Color(1, 1, 1, 0.18)
-	return sb
-
-
-func _btn_style(col: Color) -> StyleBoxFlat:
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = col
-	sb.set_corner_radius_all(8)
-	sb.content_margin_left = 10.0
-	sb.content_margin_top = 6.0
-	sb.content_margin_right = 10.0
-	sb.content_margin_bottom = 6.0
-	return sb
-
+	_elapsed += delta
+	if _elapsed >= 0.12:
+		_elapsed = 0.0
+		_tick()
+	_update_arrow()
 
 func _panel() -> Control:
 	return get_tree().current_scene.get_node_or_null("UILayer/UpgradePanel") as Control
 
+func _rebirth_panel() -> Control:
+	return get_tree().current_scene.get_node_or_null("UILayer/ReincarnationPanel") as Control
 
-# —— 持久化 ——
-# 引导完成标记由 SaveManager 按槽位持久化（mark_onboarding_done），此处不再自管文件。
+func _set_stage(stage: int) -> void:
+	if SaveManager.onboarding_stage < stage:
+		SaveManager.onboarding_stage = stage
+		SaveManager.save_current_slot()
 
-# 供测试面板调用的"重置引导"入口：将当前槽位标为待引导，并就地重建引导层从头开始。
+func _tick() -> void:
+	if _done:
+		return
+	if ReincarnationManager.total_reincarnations > 0:
+		_finish()
+		return
+	var tree := _panel()
+	var tree_open: bool = is_instance_valid(tree) and tree.visible
+	var new_step: int
+	var message: String
+	if UpgradeManager.get_hammer_damage_level() == 0 and SaveManager.onboarding_stage == 0:
+		var price := UpgradeManager.get_node_cost("hammer_damage")
+		if tree_open:
+			new_step = Step.ADD_DAMAGE
+			message = "点击「锤子伤害」升级一次 · %d 金币" % price
+		elif GoldManager.total_gold < price:
+			new_step = Step.HIT
+			message = "鼠标移到方块上，点击砸楼 · 赚取 %d 金币" % price
+		else:
+			new_step = Step.OPEN_TREE
+			message = "金币够了！打开技能树，强化你的锤子"
+	else:
+		_set_stage(1)
+		if UpgradeManager.get_bomb_launcher_count() == 0:
+			var price := UpgradeManager.get_node_cost("bomb_launcher")
+			if tree_open and _step in [Step.ADD_DAMAGE, Step.RETURN]:
+				new_step = Step.RETURN
+				message = "锤子升级成功！点击 × 或按 Esc 返回工地"
+			elif GoldManager.total_gold < price:
+				new_step = Step.WAIT_LAUNCHER
+				message = "继续拆楼 · 第一台液压炮还差 %d 金币" % (price - GoldManager.total_gold)
+			elif tree_open:
+				new_step = Step.BUY_LAUNCHER
+				message = "点击「发射器数量」部署第一台液压炮 · %d 金币" % price
+			else:
+				new_step = Step.OPEN_LAUNCHER
+				message = "可以部署液压炮了！打开技能树"
+		else:
+			_set_stage(2)
+			if tree_open and SaveManager.onboarding_stage < 3:
+				new_step = Step.RETURN_LAUNCHER
+				message = "液压炮已部署 · 点击 × 或按 Esc 返回工地，看看它开炮"
+			elif SaveManager.onboarding_stage < 3:
+				new_step = Step.FIRST_FIRE
+				message = "液压炮会自动瞄准和开火 · 你仍可继续锤击"
+			elif ReincarnationManager.collect_total_rp(GoldManager.lifetime_gold_this_run) <= 0:
+				new_step = Step.WAIT_REBIRTH
+				message = "自动轰炸开始了！累计拆楼产出 %d / %d，准备首次转生" % [GoldManager.lifetime_gold_this_run, ReincarnationManager.get_required_run_gold()]
+			elif _rebirth_panel().visible:
+				new_step = Step.CONFIRM_REBIRTH
+				message = "查看转生收益后自行确认 · 本局金币与升级清空，永久成长保留"
+			else:
+				new_step = Step.OPEN_REBIRTH
+				message = "首次转生已就绪！打开转生界面，查看本次收益"
+	if new_step != _step:
+		_step = new_step
+		SoundManager.play("onboarding_pop")
+	_bar_label.text = message
+	var phase := 1 if _step <= Step.RETURN else (2 if _step <= Step.FIRST_FIRE else 3)
+	_phase_label.text = "新手工程  %d / 3  ·  %s" % [phase,["锤击与升级","自动拆楼","永久成长"][phase-1]]
+	_target = _target_rect()
+	_avoid_rects.clear()
+	for button in get_tree().current_scene.find_children("*","BaseButton",true,false):
+		if button.is_visible_in_tree():
+			var rect: Rect2 = Presentation.screen_rect(button)
+			if not rect.intersects(_target):
+				_avoid_rects.append(rect.grow(4))
+	if tree_open:
+		for card in tree._all_cards:
+			var rect: Rect2 = tree.node_screen_rect(card.id)
+			if not rect.intersects(_target):
+				_avoid_rects.append(rect.grow(4))
+	_bar.position.y = _screen.y-124
+	if _target.has_area() and _target.grow(16).intersects(Rect2(_bar.position,_bar.size)):
+		_bar.position.y = 16
+	var blocked := _obscured()
+	_bar.visible = not blocked
+	_arrow.visible = _target.has_area() and not blocked
+	_glow.visible = _arrow.visible
+	_glow.queue_redraw()
+
+func _obscured() -> bool:
+	for path in ["UILayer/SettingsPanel","GoldHUD/RestartConfirm"]:
+		var panel := get_tree().current_scene.get_node_or_null(path) as Control
+		if panel and panel.visible:
+			return true
+	return _rebirth_panel().visible and _step != Step.CONFIRM_REBIRTH
+
+func _target_rect() -> Rect2:
+	var hud := get_tree().current_scene.get_node("GoldHUD")
+	match _step:
+		Step.HIT:
+			# Reconsider untouched targets as the tower finishes spawning; keep a damaged
+			# target stable so a player can finish the block they already started hitting.
+			if not is_instance_valid(_block) or _block._shattered or _block._falling or _block.hp >= _block.max_hp:
+				_block = null
+				var best := INF
+				var building := get_tree().current_scene.get_node_or_null("Building")
+				if building:
+					for node in building.get_children():
+						if not node is BuildingBlock or node._shattered or node._falling:
+							continue
+						var pos: Vector2 = node.get_global_transform_with_canvas().origin
+						if not Rect2(Vector2(80,220),_screen-Vector2(160,420)).has_point(pos):
+							continue
+						var score: float = pos.distance_squared_to(_screen*0.5) + node.hp*1000
+						if score < best:
+							best = score
+							_block = node
+			if is_instance_valid(_block):
+				return Rect2(_block.get_global_transform_with_canvas().origin-Vector2(20,20),Vector2(40,40))
+		Step.OPEN_TREE, Step.OPEN_LAUNCHER:
+			return hud.action_screen_rect("skill_tree")
+		Step.ADD_DAMAGE:
+			return _panel().node_screen_rect("hammer_damage")
+		Step.BUY_LAUNCHER:
+			return _panel().node_screen_rect("bomb_launcher")
+		Step.RETURN, Step.RETURN_LAUNCHER:
+			return _panel().close_screen_rect()
+		Step.OPEN_REBIRTH:
+			if not _panel().visible:
+				return hud.action_screen_rect("rebirth")
+		Step.CONFIRM_REBIRTH:
+			return _rebirth_panel().settlement_screen_rect()
+	return Rect2()
+
+func _update_arrow() -> void:
+	if not _arrow.visible:
+		return
+	var center := _target.get_center()
+	var spaces := [center.x,_screen.x-center.x,center.y-160,_screen.y-center.y-160]
+	var choice := spaces.find(spaces.max())
+	var candidates := [0,1,2,3]
+	candidates.sort_custom(func(a: int,b: int) -> bool: return spaces[a] > spaces[b])
+	for candidate in candidates:
+		var direction: Vector2 = [Vector2.RIGHT,Vector2.LEFT,Vector2.DOWN,Vector2.UP][candidate]
+		var half_size := _target.size*0.5
+		var tip := center-direction*((half_size.x if candidate < 2 else half_size.y)+14)
+		var arrow_rect := Transform2D(direction.angle(),tip)*Rect2(-82,-28,86,56)
+		var free := Rect2(Vector2(8,8),_screen-Vector2(16,16)).encloses(arrow_rect)
+		free = free and not arrow_rect.intersects(Rect2(_bar.position,_bar.size))
+		for rect in _avoid_rects:
+			if arrow_rect.intersects(rect):
+				free = false
+				break
+		if free:
+			choice = candidate
+			break
+	_arrow_dir = [Vector2.RIGHT,Vector2.LEFT,Vector2.DOWN,Vector2.UP][choice]
+	var half := _target.size*0.5
+	var edge := center-_arrow_dir*(half.x if choice < 2 else half.y)
+	var breathe := 0.0 if Presentation.reduced_motion else sin(_pulse)*4.0
+	_arrow_cur = (edge-_arrow_dir*(14+breathe)).round()
+	_arrow.position = _arrow_cur
+	_arrow.rotation = _arrow_dir.angle()
+	_arrow.queue_redraw()
+	_glow.modulate.a = 1.0 if Presentation.reduced_motion else 0.8+sin(_pulse)*0.15
+
+func _draw_arrow() -> void:
+	var points := PackedVector2Array([Vector2(-76,-9),Vector2(-28,-9),Vector2(-28,-22),Vector2(0,0),Vector2(-28,22),Vector2(-28,9),Vector2(-76,9)])
+	_arrow.draw_colored_polygon(points,Presentation.PROFILE.gold)
+	var outline := points.duplicate()
+	outline.append(points[0])
+	_arrow.draw_polyline(outline,Presentation.PROFILE.ink,5.0)
+	_arrow.draw_line(Vector2(-68,-5),Vector2(-32,-5),Color("#ffe49b"),2.0)
+
+func _draw_glow() -> void:
+	if _target.has_area():
+		_glow.draw_rect(_target.grow(6),Presentation.PROFILE.ink,false,7.0)
+		_glow.draw_rect(_target.grow(6),Presentation.PROFILE.gold,false,3.0)
+
+func _on_bomb_fired(_at: Vector2) -> void:
+	if not _done and UpgradeManager.get_bomb_launcher_count() > 0:
+		_set_stage(3)
+		_tick()
+
+func _on_rebirth() -> void:
+	if ReincarnationManager.total_reincarnations > 0:
+		_finish()
+
+func _finish() -> void:
+	if _done:
+		return
+	_done = true
+	SaveManager.mark_onboarding_done()
+	hide()
+
+func _on_skip() -> void:
+	_finish()
+
+func _build_ui() -> void:
+	_glow = Node2D.new()
+	_glow.draw.connect(_draw_glow)
+	add_child(_glow)
+	_arrow = Node2D.new()
+	_arrow.draw.connect(_draw_arrow)
+	add_child(_arrow)
+	_bar = PanelContainer.new()
+	_bar.name = "GuideCard"
+	_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_bar)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation",24)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_bar.add_child(row)
+	var body := VBoxContainer.new()
+	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(body)
+	_phase_label = Label.new()
+	_phase_label.add_theme_font_size_override("font_size",16)
+	_phase_label.add_theme_color_override("font_color",Presentation.PROFILE.cyan)
+	body.add_child(_phase_label)
+	_bar_label = Label.new()
+	_bar_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_bar_label.add_theme_font_size_override("font_size",21)
+	body.add_child(_bar_label)
+	_skip_btn = Button.new()
+	_skip_btn.text = "跳过指引"
+	_skip_btn.add_theme_font_size_override("font_size",16)
+	_skip_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_skip_btn.pressed.connect(_on_skip)
+	row.add_child(_skip_btn)
+
+func _layout() -> void:
+	_screen = get_viewport().get_visible_rect().size
+	_bar.size = Vector2(minf(820,_screen.x-64),106)
+	_bar.position = Vector2((_screen.x-_bar.size.x)/2,_screen.y-124)
+
 static func reset_and_restart() -> void:
 	SaveManager.onboarding_pending = true
+	SaveManager.onboarding_stage = 0
 	var scene: Node = Engine.get_main_loop().current_scene
 	if scene == null:
 		return
-	# 移除旧引导层（改名避免与接下来新节点重名冲突）
-	var old: Node = scene.get_node_or_null("Onboarding")
-	if old != null and is_instance_valid(old):
+	var old := scene.get_node_or_null("Onboarding")
+	if old:
 		old.name = "Onboarding_old"
 		old.queue_free()
-	# 重建引导层：复用 Main.tscn 中的脚本与层级
-	var o := CanvasLayer.new()
-	o.name = "Onboarding"
-	o.layer = 25
-	o.set_script(load("res://scripts/Onboarding.gd"))
-	scene.add_child(o)
-
-
-func _tree_button_position() -> Vector2:
-	var button := get_tree().current_scene.get_node_or_null("GoldHUD/GoldBar/SkillTreeButton") as Control
-	return button.get_global_rect().get_center() if button else TREE_BTN_POS
-
-func _on_viewport_resized() -> void:
-	_screen = get_viewport().get_visible_rect().size
-	if _skip_btn:
-		_skip_btn.position = Vector2(_screen.x-200,158)
-	if _bar:
-		_position_bar(_step == Step.ADD_DAMAGE)
+	var guide := CanvasLayer.new()
+	guide.name = "Onboarding"
+	guide.set_script(load("res://scripts/Onboarding.gd"))
+	scene.add_child(guide)

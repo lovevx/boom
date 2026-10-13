@@ -1,0 +1,27 @@
+{
+  "authoring": "Original pixel primitives and editable SVG groups; text-only generated concept",
+  "borrowed_art_inputs": [],
+  "canvas": [
+    64,
+    64
+  ],
+  "frames": 33,
+  "fps": 16,
+  "fire_frame": 20,
+  "fire_muzzle": [
+    10,
+    21
+  ],
+  "ground_pixel": 63,
+  "layers": [
+    "tracks",
+    "chassis",
+    "hydraulics",
+    "barrel"
+  ],
+  "runtime": [
+    "launcher.png",
+    "launcher_attack.png",
+    "launcher_frames.tres"
+  ]
+}

@@ -3,6 +3,7 @@ extends Node
 ## 建筑方块被毁时产出金币并累加到这里；HUD 监听 gold_changed 实时刷新。
 
 signal gold_changed(new_total: int)
+signal run_reset
 
 var total_gold: int = 0
 
@@ -23,6 +24,10 @@ func get_destroyed_count() -> int:
 func register_destroyed() -> void:
 	destroyed_count += 1
 	stats_blocks_destroyed += 1
+	DemoProgress.blocks_destroyed += 1
+	# 以已保存的拆除总数决定结算边界，读档不会补发合同奖励。
+	if destroyed_count % UpgradeManager.contract_blocks == 0:
+		add_gold(UpgradeManager.get_contract_reward())
 
 
 # 增加金币，并广播新的总数供 UI 刷新。
@@ -32,6 +37,7 @@ func add_gold(amount: int) -> void:
 	total_gold += amount
 	lifetime_gold_this_run += amount
 	stats_gold_earned += amount
+	DemoProgress.gold_earned += amount
 	gold_changed.emit(total_gold)
 
 
@@ -59,6 +65,7 @@ func reset() -> void:
 	total_gold = 0
 	lifetime_gold_this_run = 0
 	destroyed_count = 0
+	run_reset.emit()
 	gold_changed.emit(0)
 
 
@@ -67,6 +74,7 @@ func restore_state(gold: int, lifetime: int, destroyed: int) -> void:
 	total_gold = maxi(0, gold)
 	lifetime_gold_this_run = maxi(0, lifetime)
 	destroyed_count = maxi(0, destroyed)
+	run_reset.emit()   # 连击与齐射为场上临时状态，不随读档串入下一局
 	gold_changed.emit(total_gold)
 
 

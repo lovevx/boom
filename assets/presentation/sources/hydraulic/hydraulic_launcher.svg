@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 64 64" shape-rendering="crispEdges">
+<g id="tracks">
+<polygon points="7,49 56,49 62,54 62,59 57,63 7,63 2,59 2,54" fill="#0b1828"/>
+<polygon points="8,51 55,51 60,55 60,58 56,61 8,61 4,58 4,55" fill="#52677b"/>
+<rect x="10" y="53" width="45" height="7" fill="#26394e"/>
+<polygon points="7,54 9,52 12,52 14,54 14,57 12,59 9,59 7,57" fill="#0b1828"/>
+<rect x="9" y="54" width="4" height="4" fill="#52677b"/>
+<rect x="10" y="54" width="2" height="2" fill="#a9bccb"/>
+<polygon points="18,54 20,52 23,52 25,54 25,57 23,59 20,59 18,57" fill="#0b1828"/>
+<rect x="20" y="54" width="4" height="4" fill="#52677b"/>
+<rect x="21" y="54" width="2" height="2" fill="#a9bccb"/>
+<polygon points="29,54 31,52 34,52 36,54 36,57 34,59 31,59 29,57" fill="#0b1828"/>
+<rect x="31" y="54" width="4" height="4" fill="#52677b"/>
+<rect x="32" y="54" width="2" height="2" fill="#a9bccb"/>
+<polygon points="40,54 42,52 45,52 47,54 47,57 45,59 42,59 40,57" fill="#0b1828"/>
+<rect x="42" y="54" width="4" height="4" fill="#52677b"/>
+<rect x="43" y="54" width="2" height="2" fill="#a9bccb"/>
+<polygon points="51,54 53,52 56,52 58,54 58,57 56,59 53,59 51,57" fill="#0b1828"/>
+<rect x="53" y="54" width="4" height="4" fill="#52677b"/>
+<rect x="54" y="54" width="2" height="2" fill="#a9bccb"/>
+<rect x="9" y="50" width="4" height="2" fill="#a9bccb"/>
+<rect x="9" y="61" width="4" height="2" fill="#52677b"/>
+<rect x="15" y="50" width="4" height="2" fill="#a9bccb"/>
+<rect x="15" y="61" width="4" height="2" fill="#52677b"/>
+<rect x="21" y="50" width="4" height="2" fill="#a9bccb"/>
+<rect x="21" y="61" width="4" height="2" fill="#52677b"/>
+<rect x="27" y="50" width="4" height="2" fill="#a9bccb"/>
+<rect x="27" y="61" width="4" height="2" fill="#52677b"/>
+<rect x="33" y="50" width="4" height="2" fill="#a9bccb"/>
+<rect x="33" y="61" width="4" height="2" fill="#52677b"/>
+<rect x="39" y="50" width="4" height="2" fill="#a9bccb"/>
+<rect x="39" y="61" width="4" height="2" fill="#52677b"/>
+<rect x="45" y="50" width="4" height="2" fill="#a9bccb"/>
+<rect x="45" y="61" width="4" height="2" fill="#52677b"/>
+<rect x="51" y="50" width="4" height="2" fill="#a9bccb"/>
+<rect x="51" y="61" width="4" height="2" fill="#52677b"/>
+</g>
+<g id="chassis">
+<polygon points="11,45 20,42 35,42 39,35 55,35 59,39 59,49 11,49" fill="#0b1828"/>
+<polygon points="13,46 22,44 37,44 40,37 54,37 57,40 57,47 13,47" fill="#ffc857"/>
+<rect x="14" y="48" width="44" height="2" fill="#b97522"/>
+<rect x="40" y="38" width="14" height="2" fill="#ffe49b"/>
+<rect x="44" y="41" width="10" height="5" fill="#26394e"/>
+<rect x="45" y="41" width="8" height="1" fill="#0b1828"/>
+<rect x="45" y="43" width="8" height="1" fill="#0b1828"/>
+<rect x="45" y="45" width="8" height="1" fill="#0b1828"/>
+<rect x="36" y="42" width="6" height="5" fill="#0b1828"/>
+<rect x="37" y="43" width="2" height="3" fill="#76d6ed"/>
+<rect x="40" y="43" width="1" height="3" fill="#76d6ed"/>
+<rect x="52" y="32" width="5" height="4" fill="#0b1828"/>
+<rect x="53" y="31" width="3" height="4" fill="#ff9638"/>
+<rect x="53" y="31" width="2" height="2" fill="#ffe49b"/>
+<rect x="15" y="46" width="2" height="2" fill="#0b1828"/>
+<rect x="40" y="40" width="2" height="2" fill="#0b1828"/>
+<rect x="55" y="46" width="2" height="2" fill="#0b1828"/>
+</g>
+<g id="hydraulics">
+<polygon points="20,32 23,31 37,43 34,47" fill="#0b1828"/>
+<polygon points="22,33 23,33 31,40 29,42" fill="#a9bccb"/>
+<polygon points="28,39 31,37 37,43 34,46" fill="#26394e"/>
+<polygon points="29,40 31,39 35,43 34,44" fill="#76d6ed"/>
+</g>
+<g id="barrel">
+<polygon points="5,19 10,12 15,13 41,30 43,37 37,43 30,40 8,25" fill="#0b1828"/>
+<polygon points="8,19 11,15 15,16 37,31 34,38 10,24" fill="#52677b"/>
+<polygon points="13,16 16,17 37,31 36,33" fill="#a9bccb"/>
+<polygon points="11,23 34,37 32,39 10,25" fill="#26394e"/>
+<polygon points="8,19 11,15 13,16 10,22 9,23 7,22" fill="#0b1828"/>
+<polygon points="16,18 18,19 14,27 12,26" fill="#ffc857"/>
+<polygon points="26,24 29,26 24,33 21,31" fill="#ffc857"/>
+<polygon points="34,28 40,31 41,36 37,40 32,38 30,35" fill="#b97522"/>
+<polygon points="35,30 39,32 39,35 36,38 33,36" fill="#ffc857"/>
+<rect x="35" y="33" width="3" height="3" fill="#0b1828"/>
+<rect x="36" y="33" width="2" height="2" fill="#52677b"/>
+<rect x="21" y="24" width="2" height="2" fill="#26394e"/>
+</g>
+</svg>

@@ -16,6 +16,7 @@ const AUTOSAVE_INTERVAL := 30.0   # 定时自动存档间隔（秒）
 var active_slot: int = -1   # 当前正在游玩的槽位；-1 表示尚未进入任何槽位
 
 var onboarding_pending := false   # 当前槽位是否仍需显示新手教程（每槽位独立）
+var onboarding_stage := 0         # 0:锤击 1:升级完成 2:已部署 3:已开炮 4:完成/跳过
 
 
 func _ready() -> void:
@@ -101,6 +102,8 @@ func save_slot(slot: int) -> void:
 	cfg.set_value("reincarnation", "permanent_nodes", ReincarnationManager.permanent_nodes)
 	# 新手教程完成标记（每槽位独立）
 	cfg.set_value("onboarding", "done", not onboarding_pending)
+	cfg.set_value("onboarding", "stage", onboarding_stage)
+	cfg.set_value("demo", "state", DemoProgress.get_save_state())
 	cfg.save(_slot_path(slot))
 	_save_life_stats()
 
@@ -112,7 +115,7 @@ func save_current_slot() -> void:
 
 
 func _collect_upgrade_levels() -> Dictionary:
-	return {
+	var levels := {
 		"hammer_speed": UpgradeManager.get_hammer_speed_level(),
 		"hammer_damage": UpgradeManager.get_hammer_damage_level(),
 		"hammer_range": UpgradeManager.get_hammer_range_level(),
@@ -128,6 +131,9 @@ func _collect_upgrade_levels() -> Dictionary:
 		"chain": UpgradeManager.get_chain_level(),
 		"scatter": UpgradeManager.get_scatter_level(),
 	}
+	for nid in UpgradeManager.DEMO_NODES:
+		levels[nid] = UpgradeManager._get_node_level(nid)
+	return levels
 
 
 # 从槽位读取并恢复完整状态到各管理器；无存档返回 false。
@@ -146,6 +152,7 @@ func load_slot(slot: int) -> bool:
 		ReincarnationManager.permanent_nodes[nid] = clampi(int(stored_nodes.get(nid, 0)), 0, ReincarnationManager.NODE_DEFS[nid].max_level)
 	# 教程完成标记
 	onboarding_pending = not bool(cfg.get_value("onboarding", "done", false))
+	onboarding_stage = clampi(int(cfg.get_value("onboarding", "stage", 0)), 0, 4) if onboarding_pending else 4
 	# 2) 单局层：重置起点 → 永久加成折叠 → 叠加存档等级
 	UpgradeManager.reset()
 	ReincarnationManager.apply_permanent_bonuses(false)
@@ -155,6 +162,8 @@ func load_slot(slot: int) -> bool:
 		int(cfg.get_value("gold", "total", 0)),
 		int(cfg.get_value("gold", "lifetime", 0)),
 		int(cfg.get_value("gold", "destroyed", 0)))
+	# restore_state emits run_reset; restore demo counters only after that signal.
+	DemoProgress.restore_state(cfg.get_value("demo", "state", {}), not cfg.has_section("demo"))
 	ReincarnationManager.reincarnation_changed.emit()
 	return true
 
@@ -163,10 +172,12 @@ func load_slot(slot: int) -> bool:
 func start_new_game(slot: int) -> void:
 	active_slot = slot
 	onboarding_pending = true   # 新存档需要走新手教程
+	onboarding_stage = 0
 	ReincarnationManager.reincarnation_points = 0
 	ReincarnationManager.total_reincarnations = 0
 	ReincarnationManager.permanent_nodes.clear()
 	GoldManager.reset()
+	DemoProgress.reset_all()
 	UpgradeManager.reset()
 	ReincarnationManager.apply_permanent_bonuses()
 
@@ -174,6 +185,7 @@ func start_new_game(slot: int) -> void:
 # 标记当前槽位新手教程已完成（引导结束时调用），并落盘。
 func mark_onboarding_done() -> void:
 	onboarding_pending = false
+	onboarding_stage = 4
 	save_current_slot()
 
 

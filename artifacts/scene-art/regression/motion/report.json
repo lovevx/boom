@@ -1,0 +1,87 @@
+{
+	"budget_peaks": {
+		"blast": 4,
+		"coin": 48,
+		"dust": 6,
+		"fragment": 768,
+		"hit": 48,
+		"number": 32,
+		"popup": 4
+	},
+	"checks": [
+		{
+			"name": "initial_tower",
+			"passed": true
+		},
+		{
+			"name": "hammer_damage_preserved",
+			"passed": true
+		},
+		{
+			"name": "bounded_world_space_trail",
+			"passed": true
+		},
+		{
+			"name": "low_effects_shortens_trail",
+			"passed": true
+		},
+		{
+			"name": "reduced_motion_clears_trail",
+			"passed": true
+		},
+		{
+			"name": "shatter_reward_preserved",
+			"passed": true
+		},
+		{
+			"name": "shards_spawn_at_destroyed_material",
+			"passed": true
+		},
+		{
+			"name": "blast_cleanup",
+			"passed": true
+		},
+		{
+			"name": "collapse_refill_preserved",
+			"passed": true
+		},
+		{
+			"name": "reserve_impact_budget",
+			"passed": true
+		},
+		{
+			"name": "impact_budget_enforced",
+			"passed": true
+		},
+		{
+			"name": "effects_pause_with_game",
+			"passed": true
+		},
+		{
+			"name": "effects_resume_and_cleanup",
+			"passed": true
+		},
+		{
+			"name": "four_launchers_automatic_destruction",
+			"passed": true
+		},
+		{
+			"name": "all_visual_budgets_bounded",
+			"passed": true
+		},
+		{
+			"name": "restart_releases_all_effect_budgets",
+			"passed": true
+		},
+		{
+			"name": "restart_restores_time_scale",
+			"passed": true
+		}
+	],
+	"destroyed_during_stress": 2163,
+	"failures": [],
+	"median_fps": 126,
+	"minimum_sample_fps": 80,
+	"rendered_stress_seconds": 35,
+	"renderer": "NVIDIA GeForce RTX 3060 Laptop GPU"
+}

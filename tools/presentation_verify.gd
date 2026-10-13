@@ -171,7 +171,7 @@ func _run() -> void:
 	check(current_scene.name == "Main","continue_saved_game")
 	var music := root.get_node("SoundManager")
 	music.set_bgm_index(1)
-	check(music._music.stream is AudioStreamWAV and music._music.stream.loop_end > 0,"music_has_real_loop")
+	check(music._music.stream is AudioStreamMP3 and music._music.stream.loop,"music_has_real_loop")
 	check(AudioServer.get_bus_effect_count(0) > 0,"master_limiter_present")
 	var report := {"checks":checks,"failures":failures,"user_dir":OS.get_user_data_dir(),"engine":Engine.get_version_info()}
 	var file := FileAccess.open(output+"/functional-verification.json",FileAccess.WRITE)

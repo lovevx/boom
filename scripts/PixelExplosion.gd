@@ -3,6 +3,7 @@ extends Node2D
 const STONE_LIFE := 0.75
 var stone_amount := 12
 var stone_texture: Texture2D = preload("res://assets/presentation/materials/marble.png")
+var outward := Vector2.UP
 
 func explode() -> void:
 	add_to_group(&"in_game_entity")
@@ -18,11 +19,12 @@ func explode() -> void:
 		particles.explosiveness = 1.0
 		particles.lifetime = STONE_LIFE
 		particles.texture = texture
-		particles.direction = Vector2.UP
-		particles.spread = 180
+		particles.material = Presentation.scene_material("granite_shard" if "granite" in stone_texture.resource_path else "equipment")
+		particles.direction = (outward + Vector2(0,-0.65)).normalized()
+		particles.spread = 65 if not Presentation.reduced_motion else 180
 		particles.gravity = Vector2(0,980)
-		particles.initial_velocity_min = 100
-		particles.initial_velocity_max = 290
+		particles.initial_velocity_min = 40 if Presentation.reduced_motion else 100
+		particles.initial_velocity_max = 90 if Presentation.reduced_motion else 290
 		particles.angular_velocity_min = -220
 		particles.angular_velocity_max = 220
 		particles.scale_amount_min = 1.0

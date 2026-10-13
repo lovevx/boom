@@ -9,6 +9,7 @@ Desktop.ini
 # Export output
 /build/
 /export/
+/拆掉大楼/
 *.tmp
 
 # Source/raw assets (PSD, GIF, original frame sets) — kept locally, not tracked

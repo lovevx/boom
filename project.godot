@@ -25,6 +25,7 @@ ScreenTransition="*res://scripts/ScreenTransition.gd"
 ReincarnationManager="*res://scripts/ReincarnationManager.gd"
 SaveManager="*res://scripts/SaveManager.gd"
 Presentation="*res://scripts/Presentation.gd"
+DemoProgress="*res://scripts/DemoProgress.gd"
 MCPGameBridge="res://addons/godot_mcp/game_bridge/mcp_game_bridge.gd"
 
 [display]

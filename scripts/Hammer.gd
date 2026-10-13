@@ -14,6 +14,9 @@ const MIN_COOLDOWN := 0.30                  # 点击CD下限（秒）：CD低于
 
 var _swinging := false   # 是否正在挥砸动画中
 var _cd_left := 0.0      # 冷却剩余时间（秒）
+var _combo_stacks := 0
+var _since_hit := 99.0
+var _effective_swings := 0
 
 const _DN_SCENE := preload("res://scenes/DamageNumber.tscn")
 @onready var _dn_layer: Node2D = get_tree().current_scene.get_node("DamageNumberLayer")
@@ -21,9 +24,17 @@ const _DN_SCENE := preload("res://scenes/DamageNumber.tscn")
 
 func _ready() -> void:
 	global_position = _offset_from_mouse()
+	GoldManager.run_reset.connect(func() -> void:
+		_combo_stacks = 0
+		_effective_swings = 0
+		_since_hit = 99.0
+		_cd_left = 0.0)
 
 
 func _process(delta: float) -> void:
+	_since_hit += delta
+	if _since_hit > UpgradeManager.combo_window + ReincarnationManager.get_specialization("combo_memory"):
+		_combo_stacks = 0
 	# 非挥砸状态下锤头跟随鼠标（带一点偏移更像手持）
 	if not _swinging:
 		global_position = _offset_from_mouse()
@@ -70,8 +81,26 @@ func _maybe_auto_smash() -> void:
 # 实际伤害 = 基础伤害 × 伤害倍率；范围 = UpgradeManager.hammer_range。
 func _smash(at: Vector2) -> void:
 	var blocks := _find_blocks(at)
+	if blocks.is_empty():
+		_combo_stacks = 0
+	else:
+		_effective_swings += 1
+		_since_hit = 0.0
+	var combo_mult := 1.0 + _combo_stacks * UpgradeManager.demo_value("combo")
+	var power_hit := not blocks.is_empty() and UpgradeManager.demo_value("power_strike") > 1.0 and _effective_swings % UpgradeManager.power_strike_every == 0
+	if power_hit:
+		var power_radius := UpgradeManager.hammer_range + UpgradeManager.power_strike_radius + ReincarnationManager.get_specialization("wave_training")
+		blocks = _find_blocks(at, power_radius)
+		var fx := preload("res://scripts/BlastFx.gd").new()
+		fx.position = at
+		fx.blast_radius = power_radius
+		fx.modulate = Color(1.0, 0.65, 0.25)
+		get_tree().current_scene.add_child(fx)
 	# 基础伤害 = 1.0 + 转生"基础伤害"永久加值；再乘单局伤害倍率（含转生"破坏之力"乘和）。
 	var dmg: float = ReincarnationManager.get_hammer_base_damage() * UpgradeManager.hammer_damage
+	dmg *= combo_mult
+	if power_hit:
+		dmg *= UpgradeManager.demo_value("power_strike")
 	var lethal_hits := 0
 	for block in blocks:
 		var dir := (block.global_position - at).normalized()
@@ -79,6 +108,10 @@ func _smash(at: Vector2) -> void:
 			dir = Vector2.RIGHT
 		# 暴击判定（机制升级）：命中时按暴击率判定，触发则 × 暴击伤害倍率。
 		var hit_dmg := dmg
+		var threshold := UpgradeManager.execute_threshold + ReincarnationManager.get_specialization("execute_training")
+		if block.hp <= block.max_hp * threshold:
+			hit_dmg *= 1.0 + UpgradeManager.demo_value("execute")
+		hit_dmg *= UpgradeManager.get_falling_multiplier(block.is_falling())
 		if UpgradeManager.crit_chance > 0.0 and randf() < UpgradeManager.crit_chance:
 			hit_dmg *= UpgradeManager.crit_multiplier
 		# 先判定本次是否会一击摧毁，供伤害数字用"致命一击"样式
@@ -91,6 +124,11 @@ func _smash(at: Vector2) -> void:
 		block.launch(dir, smash_impulse)
 		_spawn_damage_number(spawn_pos, hit_dmg, block.max_hp, lethal)
 	if not blocks.is_empty():
+		var impact := preload("res://scripts/ImpactFx.gd").new()
+		impact.position = at
+		impact.power = power_hit
+		get_tree().current_scene.add_child(impact)
+		_combo_stacks = mini(UpgradeManager.combo_stack_cap, _combo_stacks + 1) if UpgradeManager.demo_value("combo") > 0.0 else 0
 		SoundManager.play("hammer_hit")
 		# 破坏反馈分档：本轮无任何致死 → 纯受击（档1，轻微顿帧+弱震）；
 		# 若有致死则交给 BuildingSetup 的 0.25s 同瞬摧毁窗口判定 档2/档3，避免这里重复拉档。
@@ -113,10 +151,12 @@ func _spawn_damage_number(pos: Vector2, dmg: float, max_hp: float, lethal: bool)
 
 # 查找命中点上的建筑方块（跳过墙体等其它碰撞体）。
 # 范围升级 > 0 时改为查找以命中点为圆心、半径为 hammer_range 的所有方块。
-func _find_blocks(at: Vector2) -> Array[BuildingBlock]:
+func _find_blocks(at: Vector2, override_radius: float = -1.0) -> Array[BuildingBlock]:
 	var result: Array[BuildingBlock] = []
 	var space := get_world_2d().direct_space_state
 	var range_radius: float = UpgradeManager.hammer_range
+	if override_radius >= 0.0:
+		range_radius = override_radius
 	if range_radius <= 0.0:
 		# 未升级范围：仅命中鼠标点击处那一个方块
 		var query := PhysicsPointQueryParameters2D.new()
@@ -124,7 +164,7 @@ func _find_blocks(at: Vector2) -> Array[BuildingBlock]:
 		query.collide_with_bodies = true
 		for hit in space.intersect_point(query):
 			var collider: Object = hit.get("collider")
-			if collider is BuildingBlock and not result.has(collider):
+			if collider is BuildingBlock and collider.hp > 0.0 and not result.has(collider):
 				result.append(collider)
 		return result
 	# 范围命中：命中圆内所有方块
@@ -134,9 +174,9 @@ func _find_blocks(at: Vector2) -> Array[BuildingBlock]:
 	shape_query.shape = shape
 	shape_query.transform = Transform2D(0.0, at)   # 圆查询中心为命中点
 	shape_query.collide_with_bodies = true
-	for hit in space.intersect_shape(shape_query):
+	for hit in space.intersect_shape(shape_query, 512):
 		var collider: Object = hit.get("collider")
-		if collider is BuildingBlock and not result.has(collider):
+		if collider is BuildingBlock and collider.hp > 0.0 and not result.has(collider):
 			result.append(collider)
 	return result
 
@@ -161,6 +201,10 @@ func _draw() -> void:
 	_draw_range()
 	draw_texture_rect(Presentation.icon("hammer"), Rect2(-28,-32,56,56), false)
 	_draw_cooldown_ring()
+	if UpgradeManager.demo_value("combo") > 0.0 and _combo_stacks > 0:
+		draw_string(ThemeDB.fallback_font, Vector2(-25, 46), "x%d +%d%%" % [_combo_stacks, roundi(_combo_stacks * UpgradeManager.demo_value("combo") * 100)], HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(1, 0.85, 0.3))
+	if UpgradeManager.demo_value("power_strike") > 1.0:
+		draw_string(ThemeDB.fallback_font, Vector2(-25, 66), "%d / %d" % [_effective_swings % UpgradeManager.power_strike_every, UpgradeManager.power_strike_every], HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(1, 0.65, 0.25))
 
 
 func _draw_range() -> void:

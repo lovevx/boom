@@ -1,11 +1,11 @@
 [gd_scene format=3 uid="uid://c7nlggu1r0tjh"]
 
 [ext_resource type="Script" uid="uid://bj621m1a1iptx" path="res://scripts/MainMenu.gd" id="1_script"]
-[ext_resource type="Script" path="res://scripts/SettingsPanel.gd" id="5_settings"]
-[ext_resource type="Script" path="res://scripts/StatsPanel.gd" id="6_statspanel"]
-[ext_resource type="Texture2D" path="res://assets/presentation/yard.png" id="2_bg_bg"]
-[ext_resource type="Texture2D" path="res://assets/presentation/logo.png" id="3_menu_art"]
-[ext_resource type="Texture2D" path="res://assets/presentation/icons/hammer.png" id="4_start_btn"]
+[ext_resource type="Texture2D" uid="uid://reod3gy5juhn" path="res://assets/presentation/yard.png" id="2_bg_bg"]
+[ext_resource type="Texture2D" uid="uid://chxqi32li3yd4" path="res://assets/presentation/logo.png" id="3_menu_art"]
+[ext_resource type="Texture2D" uid="uid://bof6tr1f44pp5" path="res://assets/presentation/icons/hammer.png" id="4_start_btn"]
+[ext_resource type="Script" uid="uid://0f0jkjyp20pn" path="res://scripts/SettingsPanel.gd" id="5_settings"]
+[ext_resource type="Script" uid="uid://bu7t163gvds06" path="res://scripts/StatsPanel.gd" id="6_statspanel"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBox_start"]
 texture = ExtResource("4_start_btn")
@@ -103,7 +103,7 @@ theme_override_styles/hover = SubResource("StyleBox_start")
 theme_override_styles/focus = SubResource("StyleBox_start")
 text = "玩法说明"
 
-[node name="SettingsButton" type="Button" parent="." unique_id=2179440312]
+[node name="SettingsButton" type="Button" parent="." unique_id=-2115526984]
 offset_left = 857.0
 offset_top = 762.0
 offset_right = 1057.0
@@ -305,7 +305,7 @@ theme_override_styles/hover = SubResource("StyleBox_close_hover")
 theme_override_styles/focus = SubResource("StyleBox_close")
 text = "知道了"
 
-[node name="SettingsPanel" type="Control" parent="." unique_id=2179440313]
+[node name="SettingsPanel" type="Control" parent="." unique_id=-2115526983]
 visible = false
 layout_mode = 3
 anchors_preset = 15
@@ -315,7 +315,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("5_settings")
 
-[node name="StatsPanel" type="Control" parent="." unique_id=2179440314]
+[node name="StatsPanel" type="Control" parent="." unique_id=-2115526982]
 visible = false
 layout_mode = 3
 anchors_preset = 15
@@ -324,6 +324,3 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("6_statspanel")
-
-
-

@@ -16,7 +16,6 @@ OUT = ROOT / "assets" / "presentation"
 GEN = Path(r"C:\Users\31992\.codex\generated_images\01a11c84-d31b-74c2-a206-fbc95f80fef0")
 SOURCES = {
     "yard": "exec-deefa435-275c-4733-83ae-ce078b04241b.png",
-    "launcher": "exec-638847f8-7af7-4b52-8936-5548c7cabf9b.png",
     "materials": "exec-3c7d853b-e080-4169-a7c5-6109451234a3.png",
     "icons": "exec-14b8091a-e43d-4b63-abbe-bccbdf6ace39.png",
     "effects": "exec-3cdf2748-2843-4d3c-83ef-060943533829.png",
@@ -58,19 +57,8 @@ def pack_art():
     far.paste(yard.crop((0,499,960,500)).resize((960,41)), (0,499))
     save(far, "backdrop.png")
     save(near, "foreground.png")
-    launcher = fit(Image.open(OUT / "sources/launcher.png").convert("RGBA"), 64)
-    save(launcher, "launcher.png")
-    attack = Image.new("RGBA",(64*33,64))
-    for index in range(33):
-        frame = launcher.copy()
-        # Upper mechanism moves one pixel during preload and two during recoil;
-        # feet stay fixed. Output cadence and discharge index match the original.
-        offset = -1 if 12 <= index < 20 else (2 if 20 <= index < 24 else (1 if index < 27 and index >= 24 else 0))
-        upper = launcher.crop((0,0,64,46))
-        frame.paste((0,0,0,0),(0,0,64,46))
-        frame.alpha_composite(upper,(offset,0))
-        attack.alpha_composite(frame,(index*64,0))
-    save(attack,"launcher_attack.png")
+    from build_hydraulic_launcher import build
+    build()
     logo = Image.open(OUT/"sources/logo.png").convert("RGBA")
     bounds = logo.getchannel("A").point(lambda p: 255 if p > 64 else 0).getbbox()
     logo = logo.crop(bounds)
@@ -225,12 +213,12 @@ def fonts():
 if __name__=="__main__":
     pack_art()
     sfx()
-    music("yard_shift")
-    music("demolition_rhythm",True)
     fonts()
-    manifest = {"generator":"Built-in imagegen; original procedural audio",
+    manifest = {"generator":"Built-in imagegen; procedural sound effects; original user BGM",
                 "seed":719,"runtime_sizes":{"materials":[20,20],"launcher":[64,64],"icons":[24,24],"background":[960,540]},
-                "source_art":SOURCES,"audio_rate":RATE,"music_bpm":100,
+                "source_art":dict(SOURCES, launcher="sources/hydraulic/hydraulic_launcher.svg"),"audio_rate":RATE,
+                "bgm_files":["assets/audio/bgm/BGM1.mp3","assets/audio/bgm/bgm2.mp3"],
+                "launcher_authoring":"Original editable pixel primitives; text-only generated concept; no borrowed sprite input",
                 "original_assets":"Preserved in assets/ui, assets/launcher, assets/audio, assets/fx"}
     (OUT/"manifest.json").write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding="utf-8")
     print("ASSET_PACKAGE_COMPLETE")

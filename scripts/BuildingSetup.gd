@@ -8,6 +8,8 @@ extends Node2D
 
 const BLOCK_SIZE := 40.0
 const COLS := 12                 # 每层宽度（列数）
+const WINDOW_BAYS := [2,3,8,9]    # 两组连续窗带；初始每层仍为 2～4 块真实玻璃。
+const FACADE = preload("res://scripts/BuildingFacade.gd")
 const VISIBLE_LAYERS := 30       # 每个柱子（列）的方块数：塔体向屏幕上方延申，营造"看不到顶"的无限感
 const TOP_WORLD_Y := -180.0      # 楼顶槽位所在世界 y（Building 局部坐标 y=0）。最底层(槽位29)中心=980、底缘=1000=物理地面顶，塔脚稳立在地面上
 
@@ -308,7 +310,8 @@ func _spawn_block(col: int, level: int, type: String, is_floor: bool) -> Buildin
 	bb.building = self
 	bb.freeze = true                 # 默认 FREEZE_MODE_STATIC：先作为静态支撑
 	# 按当前材质挡位取值（旧塔不升档：只在生成/补层时读取）
-	var entry: Dictionary = TIERS[_current_tier()][_type_key(type)]
+	var tier: Dictionary = TIERS[_current_tier()]
+	var entry: Dictionary = tier[_type_key(type)]
 	# 玻璃 HP 由材质决定（普通<浮法<钢化，同一玻璃各挡位血量恒定），非玻璃材质回退挡位表 hp。
 	var material: String = entry.material
 	var block_hp: float = GLASS_BASE_HP.get(material, entry.hp)
@@ -329,6 +332,24 @@ func _spawn_block(col: int, level: int, type: String, is_floor: bool) -> Buildin
 	visual.name = "VisualLayer"
 	bb.add_child(visual)
 	bb.visual_layer = visual
+	var shell := FACADE.new()
+	shell.name = "DepthShell"
+	shell.depth_only = true
+	shell.column = col
+	shell.floor_panel = is_floor
+	shell.wall_color = tier.wall.color
+	shell.slab_color = entry.color
+	shell.z_index = -2
+	visual.add_child(shell)
+	# A floor block retains its full collision/HP; masonry spandrel above a thin slab.
+	if is_floor:
+		var spandrel := Sprite2D.new()
+		spandrel.name = "Spandrel"
+		spandrel.texture = _get_material_texture(tier.wall.material)
+		spandrel.scale = Vector2(2,2)
+		spandrel.material = Presentation.scene_material("granite" if tier.wall.material == "花岗岩" else "stone")
+		spandrel.modulate = _facade_light(col)
+		visual.add_child(spandrel)
 
 	# 部件贴图：优先加载真实美术素材；找不到则回退程序白渐变 + 纯色着色。
 	# 真实贴图只做"亮度调制"（弱→亮、强→深），保留材质的天然配色（红砖/玻璃/金属…）。
@@ -342,13 +363,28 @@ func _spawn_block(col: int, level: int, type: String, is_floor: bool) -> Buildin
 	if photo != null:
 		sprite.texture = photo
 		_apply_block_render(sprite)
-		sprite.modulate = Color(jitter, jitter, jitter)
-		sprite.material = null   # 按材质类别加质感（玻璃/金属/石材）
+		sprite.modulate = _facade_light(col) * Color(jitter,jitter,jitter)
+		var art_kind := "glass" if bb.is_glass else ("granite" if material == "花岗岩" else "stone")
+		sprite.material = Presentation.scene_material(art_kind)
 	else:
 		sprite.texture = _get_block_texture()
 		sprite.modulate = _tint_by_hp(base, block_hp, jitter)
 	bb.debris_color = _tint_by_hp(base, block_hp, jitter)   # 破碎碎屑沿用材质色，保持色彩关联
+	sprite.name = "Surface"
+	if bb.is_glass:
+		sprite.region_rect = Rect2(2,2,16,16)
+		sprite.position.y = -2
+	elif is_floor:
+		sprite.region_rect = Rect2(0,14,20,6)
+		sprite.position.y = 14
 	visual.add_child(sprite)
+	var details := FACADE.new()
+	details.name = "FacadeDetails"
+	details.column = col
+	details.glass = bb.is_glass
+	details.floor_panel = is_floor
+	details.wall_color = tier.wall.color
+	visual.add_child(details)
 
 	# 程序化裂纹覆盖层：材质之上叠一层暗色裂缝（P1，全材质共用同一套 shader）。
 	# 随方块生成时就建好并绑定（不是破裂时才出现），满血无裂纹，血量下降由 update_crack() 驱动。
@@ -382,7 +418,7 @@ func _spawn_block(col: int, level: int, type: String, is_floor: bool) -> Buildin
 
 
 # 生成一层楼面模板（字符：# 墙  W 窗  = 楼板）。
-# 楼板层全 "="；墙面层满墙 "#"，两端封墙、中部随机位置开 2~4 扇窗。
+# 楼板层全 "="；墙面层仍开 2~4 扇窗，位置沿两个固定窗带排列。
 func _random_layer_pattern(is_floor: bool) -> String:
 	if is_floor:
 		return "=".repeat(COLS)
@@ -390,13 +426,16 @@ func _random_layer_pattern(is_floor: bool) -> String:
 	for i in range(COLS):
 		cells.append("#")
 	var windows := randi_range(2, 4)
-	var placed := 0
-	while placed < windows:
-		var col := randi_range(1, COLS - 2)
-		if cells[col] == "#":
-			cells[col] = "W"
-			placed += 1
+	var columns := WINDOW_BAYS.duplicate()
+	if randi() % 2 == 1:
+		columns = [8,9,2,3]
+	for i in windows:
+		cells[columns[i]] = "W"
 	return "".join(cells)
+
+func _facade_light(col: int) -> Color:
+	var light := lerpf(1.04,Presentation.PROFILE.building_front_right_light,float(col)/float(COLS-1))
+	return Color(light,light,light)
 
 
 # 某列的一块方块被砸碎后回调：从该列移除被碎方块。
@@ -546,7 +585,7 @@ func _refill_column(c: int) -> void:
 	for level in range(VISIBLE_LAYERS):
 		if occupied.has(level):
 			continue
-		var block := _spawn_block(c, level, _refill_type(_level_is_floor(level)), _level_is_floor(level))
+		var block := _spawn_block(c, level, _refill_type(_level_is_floor(level),c), _level_is_floor(level))
 		_cols[c].append(block)
 
 
@@ -556,10 +595,11 @@ func _level_is_floor(level: int) -> bool:
 
 
 # 补层方块类型：楼板层用楼板；墙面层在墙/窗间随机。
-func _refill_type(is_floor: bool) -> String:
+func _refill_type(is_floor: bool, col: int) -> String:
 	if is_floor:
 		return "="
-	return "W" if randf() < 0.25 else "#"
+	# Four bay slots × 0.75 = the previous whole-row expectation of twelve × 0.25.
+	return "W" if col in WINDOW_BAYS and randf() < 0.75 else "#"
 
 
 # 供全自动锤子使用的取块接口：返回当前最低（最靠近地面）的存活方块，用于自动瞄准。

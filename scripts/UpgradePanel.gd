@@ -16,7 +16,7 @@ extends Control
 
 const OCT_R := 30.0      # 八边形节点外接圆半径
 const HUB_R := 44.0      # 中心 Hub 半径
-const SPACING := 74.0    # 同 tier 相邻节点间距
+const SPACING := 100.0    # 为新增机制节点保留标题间距
 const L1 := 160.0        # tier1 距 Hub
 const L2 := 245.0        # tier2 距 Hub
 const L3 := 330.0        # tier3 距 Hub
@@ -45,6 +45,8 @@ var _t: float = 0.0                        # 连线/Hub 脉动相位
 var _fills := {}                           # id → 入边填充进度(0..1)；加点瞬间从0冲到1
 
 # —— 悬停提示（小浮窗，不开卡片） ——
+var _close_button: Button
+var _paused_before_open := false
 var _tip: PanelContainer
 var _tip_title: Label
 var _tip_body: Label
@@ -66,11 +68,17 @@ func _process(delta: float) -> void:
 		return
 	_t += delta
 	_link_layer.queue_redraw()
+	for card in _all_cards:
+		if card.get("affordable",false):
+			card.hex.queue_redraw()
 
 
 # —— 界面打开 / 关闭 ——
 
 func open() -> void:
+	if visible:
+		return
+	_paused_before_open = get_tree().paused
 	show()
 	get_tree().paused = true   # 暂停整个游戏：升级面板期间主界面停止运行
 	refresh_all()
@@ -79,15 +87,23 @@ func open() -> void:
 
 func close() -> void:
 	_hide_tip()   # 关闭整个技能树时，收起悬停提示
-	get_tree().paused = false   # 恢复游戏
+	get_tree().paused = _paused_before_open   # 恢复进入前的暂停状态
 	hide()
 
 
 # 供外部（如新手引导）查询某个节点当前的屏幕坐标，用于定位引导箭头。
 # _tree 是面板内全屏 Control（原点对齐屏幕），故 _tree.position + center 即屏幕坐标。
 func node_screen_pos(nid: String) -> Vector2:
-	var center: Vector2 = _center_map.get(nid, _hub_center)
-	return _tree.position + center
+	return node_screen_rect(nid).get_center()
+
+func node_screen_rect(nid: String) -> Rect2:
+	for card in _all_cards:
+		if card.id == nid:
+			return Presentation.screen_rect(card.hex)
+	return Rect2()
+
+func close_screen_rect() -> Rect2:
+	return Presentation.screen_rect(_close_button)
 
 
 # —— UI 搭建 ——
@@ -129,8 +145,7 @@ func _build_tree_panel() -> void:
 	Presentation.bind_dialog(_tree,panel_size,false)
 
 	# 深绿底色
-	var bg := ColorRect.new()
-	bg.color = Presentation.PROFILE.panel
+	var bg := Panel.new()
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_tree.add_child(bg)
@@ -169,6 +184,7 @@ func _build_tree_panel() -> void:
 
 	# 右上角关闭按钮（关闭整个技能树）
 	var close_btn := Button.new()
+	_close_button = close_btn
 	close_btn.text = "✕"
 	close_btn.position = Vector2(_tree.size.x - 74, 12)
 	close_btn.size = Vector2(56, 48)
@@ -177,9 +193,9 @@ func _build_tree_panel() -> void:
 	_tree.add_child(close_btn)
 	var guide := Label.new()
 	guide.position = Vector2(42,150)
-	guide.size = Vector2(360,360)
-	guide.text = "拆除成长路线\n\n悬停节点查看效果与价格\n点击亮色节点购买升级\n\n灰色锁：尚未解锁\n分支色：可以升级\n金色框：已点亮 / 已满级\n\n升级后立即生效"
-	guide.add_theme_font_size_override("font_size",22)
+	guide.size = Vector2(360,560)
+	guide.text = "拆除成长路线 · 24 节点\n\n主动拆除：连续作业 → 蓄势重锤\n自动轰炸：高能装药 → 延时余震\n工程经营：拆除合同 + 坍塌回收\n\n悬停查看效果、费用和前置\n点击节点购买，立即生效\n锁：前置或转生未满足\n＋：可购买　缺：金币不足\n✓：满级　数字：当前 / 上限\n\n第一次转生：重锤 / 重炮\n第二次转生：余震 / 空中解体\n第三次转生：散射 / 火控同步"
+	guide.add_theme_font_size_override("font_size",20)
 	guide.add_theme_color_override("font_color",Presentation.PROFILE.muted)
 	guide.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_tree.add_child(guide)
@@ -240,7 +256,7 @@ func _build_nodes() -> void:
 		{"id": "chain", "title": "连锁伤害", "branch": "bomb", "tier": 3, "slot": 1, "icon": "⛓",
 			"src": "bomb_damage", "cost": UpgradeManager.get_chain_cost, "upgrade": UpgradeManager.upgrade_chain,
 			"effect": func() -> String: return "爆炸连锁加伤 %d%%" % int(UpgradeManager.chain_damage * 100.0)},
-		{"id": "scatter", "title": "散射炮", "branch": "bomb", "tier": 3, "slot": 2, "icon": "✸",
+		{"id": "scatter", "title": "散射炮", "branch": "bomb", "tier": 3, "slot": 4, "icon": "✸",
 			"src": "bomb_radius", "cost": UpgradeManager.get_scatter_cost, "upgrade": UpgradeManager.upgrade_scatter,
 			"effect": func() -> String: return "每次发射 ×%d" % UpgradeManager.get_scatter_count()},
 		# 建筑(← 左)
@@ -250,6 +266,13 @@ func _build_nodes() -> void:
 	]
 
 	# 统计每个 branch-tier 的槽位数，用于中心对齐。
+	for nid in UpgradeManager.DEMO_NODES:
+		var entry: Dictionary = UpgradeManager.DEMO_NODES[nid]
+		defs.append({"id":nid, "title":entry.title, "branch":entry.branch, "tier":entry.tier, "slot":entry.slot, "src":entry.pre})
+	# 新旧节点统一从管理器获取实际扣款价（包含采购折扣）。
+	for d in defs:
+		var nid: String = d.id
+		d.cost = func() -> int: return UpgradeManager.get_node_cost(nid)
 	var slot_count := {}
 	for d in defs:
 		var key := "%s:%d" % [d["branch"], d["tier"]]
@@ -297,9 +320,10 @@ func _make_octagon(d: Dictionary) -> void:
 	var lvlb := Label.new()
 	lvlb.text = ""
 	lvlb.position = Vector2(r * 0.6, r * 1.05)
-	lvlb.size = Vector2(r * 1.2, 20)
+	lvlb.position = Vector2(9,36)
+	lvlb.size = Vector2(42,20)
 	lvlb.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lvlb.add_theme_font_size_override("font_size", 18)
+	lvlb.add_theme_font_size_override("font_size", 14)
 	lvlb.add_theme_color_override("font_color", Color(1, 1, 1, 0.95))
 	oct.add_child(lvlb)
 	var caption := Label.new()
@@ -310,9 +334,6 @@ func _make_octagon(d: Dictionary) -> void:
 	caption.add_theme_font_size_override("font_size",16)
 	caption.add_theme_color_override("font_color",d["color"])
 	caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if d["branch"] == "econ":
-		caption.position = Vector2(66,18)
-		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	oct.add_child(caption)
 	# 锁（锁定态覆盖）
 	var lock_lb := TextureRect.new()
@@ -327,6 +348,16 @@ func _make_octagon(d: Dictionary) -> void:
 	d["icon_label"] = icon_lb
 	d["hex_label"] = lvlb
 	d["hex_lock"] = lock_lb
+	var status := Label.new()
+	status.position = Vector2(45,-9)
+	status.size = Vector2(24,24)
+	status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	status.add_theme_font_size_override("font_size",15)
+	status.add_theme_color_override("font_outline_color",Presentation.PROFILE.ink)
+	status.add_theme_constant_override("outline_size",5)
+	status.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	oct.add_child(status)
+	d["status_label"] = status
 
 
 # 绘制一个八边形节点：框色由状态决定（点亮=金橙 / 可升=分支配色 / 锁定=灰）。
@@ -344,11 +375,23 @@ func _draw_octagon(oct: Control, d: Dictionary) -> void:
 	if state == "lit" or state == "maxed":
 		outline = GOLD
 	elif state == "available":
-		outline = d["color"]
+		outline = Presentation.PROFILE.cyan if d.get("affordable",false) else Presentation.PROFILE.muted
 	oct.draw_colored_polygon(pts, fill)
+	var inner := PackedVector2Array()
+	for point in pts:
+		inner.append(c+(point-c)*0.82)
+	oct.draw_colored_polygon(inner,Color("#1e3546"))
+	oct.draw_line(pts[4],pts[5],Color("#7f9ca9"),3)
+	oct.draw_line(pts[5],pts[6],Color("#7f9ca9"),3)
 	var poly := pts.duplicate()
 	poly.append(pts[0])
 	oct.draw_polyline(poly, outline, 3.0)
+	if d.get("affordable",false):
+		var alpha := 0.5 if Presentation.reduced_motion else 0.3+0.3*sin(_t*3)
+		oct.draw_arc(c,r-4,-PI*0.8,PI*0.2,16,Color(outline,alpha),2)
+	for corner in [0,2,4,6]:
+		var bolt := c+(pts[corner]-c)*0.88
+		oct.draw_circle(bolt,2,Color("#afc1c8"))
 
 
 func _darken(col: Color, _dummy: float) -> Color:
@@ -411,14 +454,16 @@ func _show_tip(d: Dictionary) -> void:
 		"maxed":
 			lines.append("已满级")
 		"lit", "available":
-			lines.append("点击加点（消耗 %d 金币）" % d["cost"].call())
+			var cost := UpgradeManager.get_node_cost(d.id)
+			lines.append("点击购买 · %d 金币" % cost if GoldManager.total_gold >= cost else "金币不足 · 费用 %d，还差 %d" % [cost,cost-GoldManager.total_gold])
 	_tip_body.text = "\n".join(lines)
+	_tip.show()
 	_tip.reset_size()
 	var half := _tip.size / 2.0
 	var c: Vector2 = d["center"]
 	_tip.position = Vector2(
-		clampf(c.x - half.x, 8, _tree.size.x - _tip.size.x - 8),
-		clampf(c.y - half.y - _tip.size.y - 26.0, 8, _tree.size.y - _tip.size.y - 8))
+		clampf(c.x + OCT_R + 18, 8, _tree.size.x - _tip.size.x - 8),
+		clampf(c.y - half.y, 8, _tree.size.y - _tip.size.y - 8))
 	_tip.show()
 
 
@@ -430,6 +475,13 @@ func _hide_tip() -> void:
 # —— 连线与中心 Hub 绘制 ——
 
 func _draw_link_layer() -> void:
+	# Etched plotting guides, separate from actionable skill links.
+	var grid := Color(0.36,0.65,0.73,0.065)
+	for x in range(440,int(_tree.size.x)-24,40):
+		_link_layer.draw_line(Vector2(x,80),Vector2(x,_tree.size.y-28),grid,1)
+	for y in range(80,int(_tree.size.y)-24,40):
+		_link_layer.draw_line(Vector2(440,y),Vector2(_tree.size.x-24,y),grid,1)
+	_link_layer.draw_line(Vector2(420,92),Vector2(420,_tree.size.y-34),Color("#405d6c"),2)
 	# 分支连线：源(前置/hub) → 目标；已点亮=金色渐变"进度条"沿源→目标推进 + 流动光带，未点亮=灰色虚线
 	for d in _all_cards:
 		var from: Vector2 = _center_map.get(d["src"], _hub_center)
@@ -478,7 +530,7 @@ func _draw_hub() -> void:
 	_link_layer.draw_arc(c, HUB_R, 0, TAU, 64, GOLD, 3.0)
 	_link_layer.draw_arc(c, HUB_R - 7, 0, TAU, 56, Color(0.30, 0.55, 0.72), 2.0)
 	_link_layer.draw_circle(c, 5, Color(1, 0.85, 0.4))
-	_link_layer.draw_texture_rect(Presentation.icon("gear"),Rect2(c-Vector2(24,24),Vector2(48,48)),false)
+	_link_layer.draw_texture_rect(Presentation.icon("building"),Rect2(c-Vector2(24,24),Vector2(48,48)),false)
 	for i in 8:
 		var a := TAU * i / 8.0 + _t * 0.3
 		var p := c + Vector2(cos(a), sin(a)) * HUB_R
@@ -514,7 +566,11 @@ func refresh_node(d: Dictionary) -> void:
 	var locked: bool = st.state == "locked"
 	d["locked"] = locked
 	d["hex_lock"].visible = locked
-	d["hex_label"].text = "%d" % st.level if not locked and st.level > 0 else ""
+	d["hex_label"].text = "%d/%d" % [st.level,st.max_level] if not locked else ""
+	var affordable: bool = not locked and st.state != "maxed" and GoldManager.total_gold >= UpgradeManager.get_node_cost(d.id)
+	d["affordable"] = affordable
+	d["status_label"].text = "锁" if locked else ("✓" if st.state == "maxed" else ("＋" if affordable else "缺"))
+	d["status_label"].add_theme_color_override("font_color",Presentation.PROFILE.cyan if affordable else Presentation.PROFILE.muted)
 	d["icon_label"].modulate = Color(1, 1, 1, 0.4) if locked else Color(1, 1, 1, 1)
 	d["hex"].queue_redraw()
 

@@ -124,7 +124,8 @@ func _spawn_white_flash(scene: Node) -> void:
 		Vector2(SLOT / 2.0, SLOT / 2.0), Vector2(-SLOT / 2.0, SLOT / 2.0),
 	])
 	flash.position = global_position
-	flash.color = Color(1.0, 0.95, 0.78, 0.45)
+	flash.color = Presentation.PROFILE.flash_color
+	flash.color.a = 0.45
 	flash.z_index = 40
 	flash.add_to_group(&"in_game_entity")
 	scene.add_child(flash)
@@ -209,15 +210,19 @@ const LANDING_BATCH_WINDOW_MS := 120   # 聚合窗口：窗口内有新落定则
 static func _defer_batch_dust(scene: Node) -> void:
 	if scene == null or not is_instance_valid(scene):
 		return
+	var scene_ref: WeakRef = weakref(scene)
 	scene.get_tree().create_timer(LANDING_BATCH_WINDOW_MS / 1000.0).timeout.connect(func() -> void:
+		var live_scene := scene_ref.get_ref() as Node
+		if live_scene == null:
+			return
 		if not _landing_batch["dirty"]:
 			return
 		var now := Time.get_ticks_msec()
 		if now - int(_landing_batch["win_ms"]) > LANDING_BATCH_WINDOW_MS:
 			_landing_batch["dirty"] = false
-			_emit_batch_dust(scene)
+			_emit_batch_dust(live_scene)
 		else:
-			_defer_batch_dust(scene)   # 窗口内又有新落定：批次延续，再等一个窗口
+			_defer_batch_dust(live_scene)   # 窗口内又有新落定：批次延续，再等一个窗口
 	)
 
 
@@ -368,7 +373,8 @@ func _spawn_pixel_explosion() -> void:
 	var boom = _PIXEL_EXPLOSION.new()
 	boom.stone_texture = debris_texture   # 碎屑沿用该方块材质的贴图（粒子层用其本色）
 	boom.stone_amount = 12                # 调低碎屑数：连锁批碎时每块一个而不爆量
-	boom.position = _shatter_origin       # 先设起点再入树，explode 里各层以其为爆点
+	boom.position = global_position      # 材质碎屑从实际方块飞出，避免范围攻击时挤在同一个爆点。
+	boom.outward = (global_position - _shatter_origin).normalized()
 	scene.add_child(boom)
 	boom.explode()
 
@@ -376,6 +382,8 @@ func _spawn_pixel_explosion() -> void:
 # 产出金币：基础 = 方块基础价格 + 转生"击破金币"永久加值 + 单局技能树"基础金币"加值，再 × 金币倍率（含转生"金币之心"乘和）。
 func _spawn_gold() -> void:
 	var base: int = gold_value + ReincarnationManager.get_coin_per_kill_bonus() + UpgradeManager.coin_base
+	if is_falling():
+		base += UpgradeManager.get_salvage_bonus()
 	if base <= 0:
 		return
 	var amount: int = roundi(base * UpgradeManager.coin_multiplier)

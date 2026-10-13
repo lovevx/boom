@@ -1,0 +1,448 @@
+{
+	"captured": false,
+	"checks": [
+		{
+			"detail": null,
+			"name": "24_run_21_permanent_nodes",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "new_game_targets_visible_block",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "target_is_damageable",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "target_replaced_when_destroyed",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "enough_gold_points_to_tree",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "real_input_opens_tree_and_guide",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "pointer_avoids_adjacent_skill",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "rect_api_matches_center_api",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "real_input_buys_first_damage",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "tutorial_does_not_auto_close_tree",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "waiting_for_cannon_is_passive",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "settings_obscure_guidance",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "settings_restore_pause_and_guidance",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "cannon_available_guidance",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "deployment_is_not_first_shot",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "manual_return_after_deployment",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "actual_first_fire_advances_tutorial",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "stage_persists_mid_tutorial",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "resume_skips_completed_steps",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "real_rebirth_threshold_used",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "rebirth_panel_guidance",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "guidance_never_covers_rebirth_button",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "rebirth_still_requires_confirmation",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "pointer_avoids_cancel_button",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "tutorial_completes_on_rebirth_before_scene_change",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "completed_stage_saved",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "legacy_completed_slot_not_replayed",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "completed_guide_not_instantiated",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "ground_anchor_0",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "muzzle_faces_building_0",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "animation_contract_0",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "ground_anchor_1",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "muzzle_faces_building_1",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "animation_contract_1",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "ground_anchor_2",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "muzzle_faces_building_2",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "animation_contract_2",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "ground_anchor_3",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "muzzle_faces_building_3",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "animation_contract_3",
+			"passed": true
+		},
+		{
+			"detail": [
+				2,
+				2,
+				2,
+				2
+			],
+			"name": "four_launchers_fire_at_fastest_rate",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "one_fire_event_per_volley_0",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "one_fire_event_per_volley_1",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "one_fire_event_per_volley_2",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "one_fire_event_per_volley_3",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "all_skill_nodes_retained",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "tooltip_actual_current_next_values",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "skill_tree_bounds_(1280, 720)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "target_transform_(1280, 720)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "fixed_rebirth_footer_(1280, 720)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "skill_tree_bounds_(1920, 1080)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "target_transform_(1920, 1080)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "fixed_rebirth_footer_(1920, 1080)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "skill_tree_bounds_(2560, 1440)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "target_transform_(2560, 1440)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "fixed_rebirth_footer_(2560, 1440)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "skill_tree_bounds_(3440, 1440)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "target_transform_(3440, 1440)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "fixed_rebirth_footer_(3440, 1440)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "skip_finishes_all_phases",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "skip_persists",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "advance_actions_do_not_require_repetition",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "reduced_motion_static_pointer",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "guide_card_bounds_(1280, 720)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "guide_skip_bounds_(1280, 720)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "guide_target_uncovered_(1280, 720)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "settings_bounds_(1280, 720)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "guide_card_bounds_(1920, 1080)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "guide_skip_bounds_(1920, 1080)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "guide_target_uncovered_(1920, 1080)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "settings_bounds_(1920, 1080)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "guide_card_bounds_(2560, 1440)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "guide_skip_bounds_(2560, 1440)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "guide_target_uncovered_(2560, 1440)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "settings_bounds_(2560, 1440)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "guide_card_bounds_(3440, 1440)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "guide_skip_bounds_(3440, 1440)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "guide_target_uncovered_(3440, 1440)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "settings_bounds_(3440, 1440)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "menu_bounds_(1280, 720)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "slot_controls_bounds_(1280, 720)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "menu_bounds_(1920, 1080)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "slot_controls_bounds_(1920, 1080)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "menu_bounds_(2560, 1440)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "slot_controls_bounds_(2560, 1440)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "menu_bounds_(3440, 1440)",
+			"passed": true
+		},
+		{
+			"detail": null,
+			"name": "slot_controls_bounds_(3440, 1440)",
+			"passed": true
+		}
+	],
+	"failures": [],
+	"fixtures": "Milestone currency injected; UI purchases use real pointer input.",
+	"user_dir": "C:/Users/31992/AppData/Roaming/Godot/app_userdata/BoomamePresentationValidationMotionSceneArtValidation"
+}
